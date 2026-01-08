@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rupiah Kilat</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    @keyframes floatUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    @keyframes progress {
+      from { width: 0%; }
+      to { width: 100%; }
+    }
+  </style>
+</head>
+
+<body class="min-h-screen bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-700 flex justify-center items-center">
+
+  <div class="w-full max-w-[420px] px-6 text-center text-white">
+
+    <!-- Logo Section -->
+    <div class="animate-[floatUp_1s_ease-out]">
+      <div class="w-20 h-20 mx-auto mb-4 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center shadow-lg">
+        <span class="text-3xl font-bold">₿</span>
+      </div>
+      <h1 class="text-3xl font-bold tracking-wide">Rupiah Kilat</h1>
+      <p class="text-blue-100 mt-2 text-sm">
+        Solusi Pinjaman Cepat & Aman
+      </p>
+    </div>
+
+    <!-- Loading -->
+    <div id="loading" class="mt-10">
+      <div class="w-full h-2 bg-white/20 rounded-full overflow-hidden">
+        <div class="h-full bg-white animate-[progress_2s_linear_forwards]"></div>
+      </div>
+      <p class="text-sm text-blue-100 mt-3">Menyiapkan akun Anda...</p>
+    </div>
+
+    <!-- Action Buttons -->
+    <div id="actions" class="hidden mt-12 space-y-4 animate-[floatUp_0.8s_ease-out]">
+
+      <a href="login.html"
+         class="block w-full py-3 rounded-xl bg-white text-blue-700 font-semibold shadow-lg active:scale-95 transition">
+        Login
+      </a>
+
+      <a href="login.html"
+         class="block w-full py-3 rounded-xl border border-white/70 text-white font-semibold active:scale-95 transition">
+        Daftar
+      </a>
+
+      <p class="text-xs text-blue-100 mt-6">
+        Dengan melanjutkan, Anda menyetujui<br>
+        Syarat & Ketentuan Rupiah Kilat
+      </p>
+    </div>
+
+  </div>
+
+  <script>
+    setTimeout(() => {
+      const userId = localStorage.getItem("id");
+
+      if (userId) {
+        window.location.href = "dashboard.html";
+      } else {
+        document.getElementById("loading").classList.add("hidden");
+        document.getElementById("actions").classList.remove("hidden");
+      }
+    }, 2000);
+  </script>
+
+</body>
+</html>
