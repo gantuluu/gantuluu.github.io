@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil Saya</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #f8fafc;
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            justify-content: center;
+            overflow-x: hidden;
+        }
+        .mobile-container {
+            width: 100%;
+            max-width: 500px;
+            min-height: 100vh;
+            background-color: #ffffff;
+            box-shadow: 0 0 20px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        .profile-gradient {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+        }
+        /* Drawer/Bottom Sheet Animation */
+        .drawer {
+            transition: transform 0.3s ease-out;
+            transform: translateY(100%);
+        }
+        .drawer.active {
+            transform: translateY(0);
+        }
+        .drawer-overlay {
+            transition: opacity 0.3s ease-out;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .drawer-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .img-preview {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 0.75rem;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="mobile-container">
+        <!-- Header & Profile Summary -->
+        <div class="profile-gradient p-6 pb-20 text-white relative">
+            <div class="flex justify-between items-center mb-8">
+                <button onclick="window.location.href='dashboard.html'" class="p-2 -ml-2 hover:bg-white/10 rounded-full transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </button>
+                <h1 class="text-lg font-bold">Profil Saya</h1>
+                <div class="w-10"></div>
+            </div>
+
+            <div class="flex items-center space-x-4">
+                <div class="w-20 h-20 bg-white/20 border-2 border-white/30 rounded-full flex items-center justify-center text-3xl font-bold shadow-lg overflow-hidden">
+                    <span id="initials">...</span>
+                </div>
+                <div>
+                    <h2 id="user_name_top" class="text-xl font-black">Memuat...</h2>
+                    <p id="user_phone_top" class="text-white/80 text-sm italic font-medium">---</p>
+                </div>
+            </div>
+
+            <!-- Card Limit Floating -->
+            <div class="absolute -bottom-12 left-6 right-6 bg-white rounded-2xl p-5 shadow-xl border border-gray-100">
+                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Limit Kredit Tersedia</p>
+                <div class="flex justify-between items-end mt-1">
+                    <span id="display_limit" class="text-2xl font-black text-blue-600">Rp 0</span>
+                    <span id="kyc_badge" class="text-[10px] bg-gray-100 text-gray-500 px-2 py-1 rounded-md font-bold italic uppercase tracking-tighter">BELUM KYC</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Menu & Info -->
+        <main class="mt-16 p-6 space-y-6 flex-grow">
+            
+            <!-- Account Info -->
+            <section class="space-y-4">
+                <div class="flex justify-between items-center px-1">
+                    <h3 class="text-sm font-bold text-gray-400 uppercase tracking-widest">Informasi Akun</h3>
+                    <button onclick="openEditDrawer()" class="text-blue-600 text-xs font-bold flex items-center hover:underline">
+                        Edit Profil
+                    </button>
+                </div>
+                
+                <div class="bg-gray-50 rounded-2xl p-4 space-y-4 border border-gray-100">
+                    <div class="flex items-center space-x-3">
+                        <div class="p-2 bg-blue-100 text-blue-600 rounded-lg">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-gray-400 font-bold uppercase">Nama Lengkap</p>
+                            <p id="info_name" class="text-sm font-bold text-gray-800">---</p>
+                        </div>
+                    </div>
+
+                    <div class="border-t border-gray-200 pt-4 flex items-center space-x-3">
+                        <div class="p-2 bg-purple-100 text-purple-600 rounded-lg">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-gray-400 font-bold uppercase">Email</p>
+                            <p id="info_email" class="text-sm font-bold text-gray-800">---</p>
+                        </div>
+                    </div>
+
+                    <div class="border-t border-gray-200 pt-4 flex items-center space-x-3">
+                        <div class="p-2 bg-green-100 text-green-600 rounded-lg">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 004.587 4.587l.773-1.548a1 1 0 011.06-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-gray-400 font-bold uppercase">No. Telepon</p>
+                            <p id="info_phone" class="text-sm font-bold text-gray-800">---</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Bank Information -->
+            <section class="space-y-4">
+                <div class="flex justify-between items-center px-1">
+                    <h3 class="text-sm font-bold text-gray-400 uppercase tracking-widest">Rekening Bank</h3>
+                    <button onclick="openBankDrawer()" class="text-blue-600 text-xs font-bold flex items-center hover:underline">
+                        Edit Bank
+                    </button>
+                </div>
+                
+                <div class="bg-gray-50 rounded-2xl p-4 border border-gray-100">
+                    <div class="flex items-center space-x-3">
+                        <div class="p-2 bg-orange-100 text-orange-600 rounded-lg">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
+                                <path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="flex-grow">
+                            <p class="text-[10px] text-gray-400 font-bold uppercase">Nama Bank</p>
+                            <p id="info_bank_name" class="text-sm font-bold text-gray-800 italic">Belum diatur</p>
+                        </div>
+                    </div>
+                    <div class="border-t border-gray-200 mt-4 pt-4">
+                        <p class="text-[10px] text-gray-400 font-bold uppercase">Nama Pemilik & No. Rekening</p>
+                        <p id="info_bank_account" class="text-sm font-bold text-gray-800">---</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- KYC Info -->
+            <section class="space-y-4">
+                <div class="flex justify-between items-center px-1">
+                    <h3 class="text-sm font-bold text-gray-400 uppercase tracking-widest">Verifikasi Identitas (KYC)</h3>
+                    <button onclick="openKycDrawer()" class="text-blue-600 text-xs font-bold flex items-center hover:underline">
+                        Perbarui KYC
+                    </button>
+                </div>
+
+                <div class="bg-blue-50 rounded-2xl p-4 border border-blue-100 flex items-start space-x-4">
+                    <div class="p-3 bg-white text-blue-600 rounded-xl shadow-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
+                    </div>
+                    <div class="flex-grow">
+                        <p class="text-xs font-bold text-blue-800 uppercase tracking-tight">Status Verifikasi</p>
+                        <p id="kyc_status_text" class="text-sm text-blue-600 font-medium mt-0.5">Lengkapi KYC untuk meningkatkan limit pinjaman Anda.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Logout -->
+            <div class="pt-4 pb-12">
+                <button onclick="logout()" class="w-full p-4 bg-red-50 text-red-600 rounded-2xl font-bold border border-red-100 transition active:scale-95">
+                    Keluar dari Akun
+                </button>
+            </div>
+        </main>
+
+        <!-- OVERLAYS & DRAWERS -->
+        <div id="drawerOverlay" class="drawer-overlay fixed inset-0 bg-black/60 z-[60]" onclick="closeAllDrawers()"></div>
+
+        <!-- Edit Profile Drawer -->
+        <div id="editDrawer" class="drawer fixed bottom-0 left-0 right-0 max-w-[500px] mx-auto bg-white rounded-t-[2.5rem] z-[70] p-8 shadow-2xl overflow-y-auto max-h-[90vh]">
+            <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6"></div>
+            <h2 class="text-2xl font-black text-gray-800 mb-2">Edit Profil</h2>
+            <p class="text-gray-400 text-sm mb-8 font-medium italic">Perbarui informasi akun Anda</p>
+
+            <form id="editForm" class="space-y-5">
+                <div class="space-y-2">
+                    <label class="text-[10px] font-bold text-gray-500 uppercase px-1">Nama Lengkap</label>
+                    <input type="text" id="edit_name" required class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-semibold text-gray-700">
+                </div>
+                
+                <div class="space-y-2">
+                    <label class="text-[10px] font-bold text-gray-500 uppercase px-1">Email</label>
+                    <input type="email" id="edit_email" required class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-semibold text-gray-700">
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-[10px] font-bold text-gray-500 uppercase px-1">No. Telepon</label>
+                    <input type="tel" id="edit_phone" required class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-semibold text-gray-700">
+                </div>
+
+                <div class="border border-gray-200 rounded-2xl p-4 bg-gray-50/50">
+                    <button type="button" onclick="togglePasswordSection()" class="w-full flex justify-between items-center">
+                        <p class="text-[10px] font-bold text-gray-500 uppercase">Ubah Kata Sandi</p>
+                        <svg id="passIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 transition-transform" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                    
+                    <div id="passwordDropdown" class="hidden mt-6 space-y-4">
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-bold text-gray-400 uppercase">Kata Sandi Saat Ini</label>
+                            <div class="relative">
+                                <input type="password" id="current_pss_display" readonly class="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl outline-none font-mono text-gray-500 text-sm">
+                                <button type="button" onclick="toggleShowPassword('current_pss_display')" class="absolute right-3 top-3 text-gray-400">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-bold text-gray-400 uppercase">Kata Sandi Baru</label>
+                            <input type="password" id="edit_pss" placeholder="Isi hanya jika ingin ganti" class="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl outline-none font-semibold text-gray-700">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex gap-3 pt-4">
+                    <button type="button" onclick="closeAllDrawers()" class="flex-1 py-4 bg-gray-100 text-gray-500 font-bold rounded-2xl transition active:scale-95">Batal</button>
+                    <button type="submit" id="btnUpdateProfile" class="flex-[2] py-4 bg-blue-600 text-white font-bold rounded-2xl shadow-lg transition active:scale-95">Simpan</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Bank Drawer -->
+        <div id="bankDrawer" class="drawer fixed bottom-0 left-0 right-0 max-w-[500px] mx-auto bg-white rounded-t-[2.5rem] z-[70] p-8 shadow-2xl overflow-y-auto max-h-[90vh]">
+            <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6"></div>
+            <h2 class="text-2xl font-black text-gray-800 mb-2">Data Rekening</h2>
+            <p class="text-gray-400 text-sm mb-8 font-medium italic">Pastikan data bank sesuai dengan identitas Anda.</p>
+
+            <form id="bankForm" class="space-y-5">
+                <div class="space-y-2">
+                    <label class="text-[10px] font-bold text-gray-500 uppercase px-1">Nama Bank</label>
+                    <input type="text" id="edit_bank_name" required placeholder="Contoh: BCA, Mandiri, BRI" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none font-semibold text-gray-700">
+                </div>
+                
+                <div class="space-y-2">
+                    <label class="text-[10px] font-bold text-gray-500 uppercase px-1">Nama Pemilik Rekening</label>
+                    <input type="text" id="edit_bank_account_name" required placeholder="Nama sesuai di buku tabungan" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none font-semibold text-gray-700">
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-[10px] font-bold text-gray-500 uppercase px-1">Nomor Rekening</label>
+                    <input type="number" id="edit_bank_account_number" required placeholder="Contoh: 12345678" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none font-semibold text-gray-700">
+                </div>
+
+                <div class="flex gap-3 pt-4">
+                    <button type="button" onclick="closeAllDrawers()" class="flex-1 py-4 bg-gray-100 text-gray-500 font-bold rounded-2xl transition active:scale-95">Batal</button>
+                    <button type="submit" id="btnUpdateBank" class="flex-[2] py-4 bg-orange-600 text-white font-bold rounded-2xl shadow-lg transition active:scale-95">Simpan Bank</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- KYC Drawer -->
+        <div id="kycDrawer" class="drawer fixed bottom-0 left-0 right-0 max-w-[500px] mx-auto bg-white rounded-t-[2.5rem] z-[70] p-8 shadow-2xl overflow-y-auto max-h-[90vh]">
+            <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6"></div>
+            <h2 class="text-2xl font-black text-gray-800 mb-2">Lengkapi Verifikasi</h2>
+            <p class="text-gray-400 text-sm mb-6">Pastikan foto terlihat jelas dan tidak buram.</p>
+
+            <form id="kycForm" class="space-y-4">
+                <input type="hidden" id="kyc_status" value="unverified">
+
+                <div class="space-y-2">
+                    <label class="text-[10px] font-bold text-gray-500 uppercase px-1">Nomor KTP (NIK)</label>
+                    <input type="number" id="kyc_ktp_number" required class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none font-semibold">
+                </div>
+                <div class="space-y-2">
+                    <label class="text-[10px] font-bold text-gray-500 uppercase px-1">Alamat Sesuai KTP</label>
+                    <textarea id="kyc_address" required rows="2" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none font-semibold"></textarea>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-bold text-gray-500 uppercase px-1 text-center block">Foto KTP</label>
+                        <div class="relative group h-32">
+                            <input type="file" id="input_ktp_image" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer z-10" onchange="previewFile(this, 'preview_ktp')">
+                            <div class="h-full bg-gray-100 border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center text-gray-400">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /></svg>
+                                <span class="text-[8px] font-bold">PILIH FOTO</span>
+                            </div>
+                            <img id="preview_ktp" class="img-preview absolute inset-0 z-20 border-2 border-blue-500">
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-bold text-gray-500 uppercase px-1 text-center block">Foto Wajah</label>
+                        <div class="relative group h-32">
+                            <input type="file" id="input_face_image" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer z-10" onchange="previewFile(this, 'preview_face')">
+                            <div class="h-full bg-gray-100 border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center text-gray-400">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                <span class="text-[8px] font-bold">PILIH FOTO</span>
+                            </div>
+                            <img id="preview_face" class="img-preview absolute inset-0 z-20 border-2 border-blue-500">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex gap-3 pt-6">
+                    <button type="button" onclick="closeAllDrawers()" class="flex-1 py-4 bg-gray-100 text-gray-500 font-bold rounded-2xl transition active:scale-95">Batal</button>
+                    <button type="submit" id="btnUpdateKyc" class="flex-[2] py-4 bg-blue-600 text-white font-bold rounded-2xl shadow-lg transition active:scale-95">Simpan KYC</button>
+                </div>
+            </form>
+        </div>
+
+    </div>
+
+    <script>
+        // Airtable Config
+        const AIRTABLE_TOKEN = "patPitTPo10xWFNOy.720741c42e78616c9cc80ca3ba0aa27ff9e53068b1ebd1c77adb21a97d88b4da";
+        const BASE_ID = "appU6nT3gXVjWYhyP";
+        const TABLE_NAME = "datapinjol";
+        const RECORD_ID = localStorage.getItem('id') || 'recdYAaO3U5YEejZO';
+
+        // Cloudinary Config
+        const CLOUDINARY_CLOUD_NAME = "daj5cu840";
+        const CLOUDINARY_UPLOAD_PRESET = "webflow";
+
+        let userData = {};
+
+        async function loadProfile() {
+            try {
+                const res = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${TABLE_NAME}/${RECORD_ID}`, {
+                    headers: { 'Authorization': `Bearer ${AIRTABLE_TOKEN}` }
+                });
+                const data = await res.json();
+                userData = data.fields;
+
+                // UI Header
+                document.getElementById('user_name_top').textContent = userData.user_name || "Tanpa Nama";
+                document.getElementById('user_phone_top').textContent = userData.user_phone || "---";
+                const initials = (userData.user_name || "?").split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+                document.getElementById('initials').textContent = initials;
+
+                // Info Cards
+                document.getElementById('info_name').textContent = userData.user_name || "---";
+                document.getElementById('info_email').textContent = userData.user_email || "---";
+                document.getElementById('info_phone').textContent = userData.user_phone || "---";
+                
+                // Bank Display
+                if (userData.bank_name) {
+                    document.getElementById('info_bank_name').textContent = userData.bank_name;
+                    document.getElementById('info_bank_name').classList.remove('italic');
+                }
+                const accountDetail = (userData.bank_account_name || "---") + " • " + (userData.bank_account_number || "---");
+                document.getElementById('info_bank_account').textContent = accountDetail;
+
+                const limit = Number(userData.limit_loan) || 0;
+                document.getElementById('display_limit').textContent = "Rp " + limit.toLocaleString('id-ID');
+                
+                // KYC Status
+                const status = userData.kyc_status || (userData.kyc_ktp_number ? "verified" : "unverified");
+                const badge = document.getElementById('kyc_badge');
+                const kycText = document.getElementById('kyc_status_text');
+                
+                if (status === "verified") {
+                    badge.textContent = "TERVERIFIKASI";
+                    badge.className = "text-[10px] bg-green-100 text-green-600 px-2 py-1 rounded-md font-bold italic uppercase tracking-tighter";
+                    kycText.textContent = "Data identitas Anda telah terverifikasi. Limit Anda telah aktif.";
+                } else if (status === "pending") {
+                    badge.textContent = "DITINJAU";
+                    badge.className = "text-[10px] bg-yellow-100 text-yellow-600 px-2 py-1 rounded-md font-bold italic uppercase tracking-tighter";
+                    kycText.textContent = "Data KYC Anda sedang dalam proses peninjauan oleh tim kami.";
+                } else {
+                    badge.textContent = "BELUM KYC";
+                    badge.className = "text-[10px] bg-gray-100 text-gray-500 px-2 py-1 rounded-md font-bold italic uppercase tracking-tighter";
+                    kycText.textContent = "Lengkapi KYC untuk meningkatkan limit pinjaman Anda.";
+                }
+
+            } catch (err) { console.error("Load Error:", err); }
+        }
+
+        // --- Drawer Open Functions ---
+        function openEditDrawer() {
+            document.getElementById('edit_name').value = userData.user_name || "";
+            document.getElementById('edit_email').value = userData.user_email || "";
+            document.getElementById('edit_phone').value = userData.user_phone || "";
+            document.getElementById('current_pss_display').value = userData.user_pss || "";
+            document.getElementById('edit_pss').value = "";
+            showDrawer('editDrawer');
+        }
+
+        function openBankDrawer() {
+            document.getElementById('edit_bank_name').value = userData.bank_name || "";
+            document.getElementById('edit_bank_account_name').value = userData.bank_account_name || "";
+            document.getElementById('edit_bank_account_number').value = userData.bank_account_number || "";
+            showDrawer('bankDrawer');
+        }
+
+        function openKycDrawer() {
+            document.getElementById('kyc_ktp_number').value = userData.kyc_ktp_number || "";
+            document.getElementById('kyc_address').value = userData.kyc_address || "";
+            document.getElementById('kyc_status').value = "unverified";
+            if (userData.kyc_ktp_image) showPreview('preview_ktp', userData.kyc_ktp_image);
+            if (userData.kyc_face_image) showPreview('preview_face', userData.kyc_face_image);
+            showDrawer('kycDrawer');
+        }
+
+        function showDrawer(id) {
+            document.getElementById('drawerOverlay').classList.add('active');
+            document.getElementById(id).classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeAllDrawers() {
+            document.querySelectorAll('.drawer, .drawer-overlay').forEach(el => el.classList.remove('active'));
+            document.body.style.overflow = 'auto';
+            document.getElementById('passwordDropdown').classList.add('hidden');
+            document.getElementById('passIcon').style.transform = "rotate(0deg)";
+        }
+
+        // --- Password Section Logic ---
+        function togglePasswordSection() {
+            const dropdown = document.getElementById('passwordDropdown');
+            const icon = document.getElementById('passIcon');
+            const isHidden = dropdown.classList.contains('hidden');
+            dropdown.classList.toggle('hidden');
+            icon.style.transform = isHidden ? "rotate(180deg)" : "rotate(0deg)";
+        }
+
+        function toggleShowPassword(id) {
+            const input = document.getElementById(id);
+            input.type = input.type === "password" ? "text" : "password";
+        }
+
+        // --- Image Preview & Cloudinary ---
+        function previewFile(input, imgId) {
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = e => showPreview(imgId, e.target.result);
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function showPreview(id, src) {
+            const img = document.getElementById(id);
+            img.src = src;
+            img.style.display = 'block';
+        }
+
+        async function uploadToCloudinary(file) {
+            if (!file) return null;
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+            try {
+                const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
+                    method: "POST", body: formData
+                });
+                const data = await res.json();
+                return data.secure_url;
+            } catch (err) { return null; }
+        }
+
+        // --- Global PATCH Handler ---
+        async function patchAirtable(fields, btnId, successMsg) {
+            const btn = document.getElementById(btnId);
+            const originalText = btn.textContent;
+            btn.disabled = true; btn.textContent = "Proses...";
+
+            try {
+                const res = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${TABLE_NAME}/${RECORD_ID}`, {
+                    method: 'PATCH',
+                    headers: { 
+                        'Authorization': `Bearer ${AIRTABLE_TOKEN}`, 
+                        'Content-Type': 'application/json' 
+                    },
+                    body: JSON.stringify({ fields })
+                });
+                if (res.ok) {
+                    alert(successMsg);
+                    loadProfile();
+                    closeAllDrawers();
+                } else { throw new Error(); }
+            } catch (err) { alert("Terjadi kesalahan, coba lagi nanti."); }
+            finally { btn.disabled = false; btn.textContent = originalText; }
+        }
+
+        // --- Submit Listeners ---
+        document.getElementById('editForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const fields = {
+                user_name: document.getElementById('edit_name').value,
+                user_email: document.getElementById('edit_email').value,
+                user_phone: document.getElementById('edit_phone').value
+            };
+            const newPass = document.getElementById('edit_pss').value;
+            if (newPass) fields.user_pss = newPass;
+            patchAirtable(fields, 'btnUpdateProfile', "Profil berhasil diperbarui!");
+        });
+
+        document.getElementById('bankForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const fields = {
+                bank_name: document.getElementById('edit_bank_name').value,
+                bank_account_name: document.getElementById('edit_bank_account_name').value,
+                bank_account_number: document.getElementById('edit_bank_account_number').value.toString()
+            };
+            patchAirtable(fields, 'btnUpdateBank', "Data Bank berhasil disimpan!");
+        });
+
+        document.getElementById('kycForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btnUpdateKyc');
+            btn.disabled = true; btn.textContent = "Mengunggah...";
+
+            const ktpFile = document.getElementById('input_ktp_image').files[0];
+            const faceFile = document.getElementById('input_face_image').files[0];
+            let ktpUrl = userData.kyc_ktp_image;
+            let faceUrl = userData.kyc_face_image;
+
+            if (ktpFile) ktpUrl = await uploadToCloudinary(ktpFile);
+            if (faceFile) faceUrl = await uploadToCloudinary(faceFile);
+
+            const fields = {
+                kyc_ktp_number: document.getElementById('kyc_ktp_number').value.toString(),
+                kyc_address: document.getElementById('kyc_address').value,
+                kyc_ktp_image: ktpUrl,
+                kyc_face_image: faceUrl,
+                kyc_status: document.getElementById('kyc_status').value
+            };
+            patchAirtable(fields, 'btnUpdateKyc', "Data KYC Berhasil Terkirim! Mohon tunggu verifikasi.");
+        });
+
+        function logout() {
+            if (confirm("Keluar dari akun?")) {
+                localStorage.removeItem('id');
+                window.location.href = 'login.html';
+            }
+        }
+
+        window.onload = loadProfile;
+    </script>
+</body>
+</html>

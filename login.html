@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Akses Pengguna</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #1a1c2c 0%, #4a192c 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Inter', sans-serif;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        }
+        .input-group input {
+            transition: all 0.3s ease;
+        }
+        .input-group input:focus {
+            transform: translateY(-2px);
+        }
+        .hidden { display: none; }
+    </style>
+</head>
+<body class="p-4">
+
+    <div class="glass-card w-full max-w-md p-8">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 id="formTitle" class="text-3xl font-bold text-gray-800">Login</h1>
+            <p id="formSubtitle" class="text-gray-500 mt-2">Masukkan kredensial Anda untuk masuk</p>
+        </div>
+
+        <!-- FORM LOGIN -->
+        <form id="loginForm" class="space-y-5">
+            <div class="input-group">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Email atau No. Telepon</label>
+                <input type="text" id="login_user" required placeholder="Email atau 0812..." 
+                    class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none">
+            </div>
+            <div class="input-group">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Kata Sandi</label>
+                <input type="password" id="login_pss" required placeholder="••••••••" 
+                    class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none">
+            </div>
+            <button type="submit" class="w-full bg-pink-600 hover:bg-pink-700 text-white font-bold py-3 rounded-xl transition duration-300 shadow-lg">
+                Masuk
+            </button>
+        </form>
+
+        <!-- FORM DAFTAR (Hidden by default) -->
+        <form id="registerForm" class="space-y-4 hidden">
+            <div class="input-group">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap</label>
+                <input type="text" id="reg_name" required placeholder="Nama Anda" 
+                    class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
+            <div class="input-group">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <input type="email" id="reg_email" required placeholder="email@contoh.com" 
+                    class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
+            <div class="input-group">
+                <label class="block text-sm font-medium text-gray-700 mb-1">No. Telepon</label>
+                <input type="tel" id="reg_phone" required placeholder="08123456789" 
+                    class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
+            <div class="input-group">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Kata Sandi</label>
+                <input type="password" id="reg_pss" required placeholder="••••••••" 
+                    class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition duration-300 shadow-lg">
+                Daftar Sekarang
+            </button>
+        </form>
+
+        <!-- Message Box -->
+        <div id="statusMsg" class="hidden mt-6 p-4 rounded-xl text-sm text-center font-medium"></div>
+
+        <!-- Toggle Link -->
+        <p class="text-center mt-8 text-sm text-gray-600">
+            <span id="toggleText">Belum punya akun?</span> 
+            <button id="toggleBtn" class="text-pink-600 font-bold hover:underline focus:outline-none">Daftar Baru Di Sini</button>
+        </p>
+    </div>
+
+    <script>
+        const AIRTABLE_TOKEN = "patPitTPo10xWFNOy.720741c42e78616c9cc80ca3ba0aa27ff9e53068b1ebd1c77adb21a97d88b4da";
+        const BASE_ID = "appU6nT3gXVjWYhyP";
+        const TABLE_NAME = "datapinjol";
+        const API_URL = `https://api.airtable.com/v0/${BASE_ID}/${TABLE_NAME}`;
+
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const toggleBtn = document.getElementById('toggleBtn');
+        const statusMsg = document.getElementById('statusMsg');
+
+        // --- UI TOGGLE LOGIC ---
+        toggleBtn.addEventListener('click', () => {
+            const isLogin = !loginForm.classList.contains('hidden');
+            if (isLogin) {
+                loginForm.classList.add('hidden');
+                registerForm.classList.remove('hidden');
+                document.getElementById('formTitle').textContent = "Daftar";
+                document.getElementById('formSubtitle').textContent = "Buat akun baru untuk memulai";
+                document.getElementById('toggleText').textContent = "Sudah punya akun?";
+                toggleBtn.textContent = "Login Di Sini";
+                toggleBtn.classList.replace('text-pink-600', 'text-blue-600');
+            } else {
+                registerForm.classList.add('hidden');
+                loginForm.classList.remove('hidden');
+                document.getElementById('formTitle').textContent = "Login";
+                document.getElementById('formSubtitle').textContent = "Masukkan kredensial Anda untuk masuk";
+                document.getElementById('toggleText').textContent = "Belum punya akun?";
+                toggleBtn.textContent = "Daftar Baru Di Sini";
+                toggleBtn.classList.replace('text-blue-600', 'text-pink-600');
+            }
+            statusMsg.classList.add('hidden');
+        });
+
+        function showStatus(msg, isError = false) {
+            statusMsg.textContent = msg;
+            statusMsg.className = `mt-6 p-4 rounded-xl text-sm text-center font-medium block ${isError ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`;
+        }
+
+        // --- DAFTAR (POST METHOD) ---
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            showStatus("Sedang mendaftarkan...");
+
+            const data = {
+                fields: {
+                    user_name: document.getElementById('reg_name').value,
+                    user_email: document.getElementById('reg_email').value,
+                    user_phone: document.getElementById('reg_phone').value,
+                    user_pss: document.getElementById('reg_pss').value
+                }
+            };
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    // Simpan ID record baru ke localStorage
+                    localStorage.setItem('id', result.id);
+                    showStatus("Pendaftaran Berhasil! Mengalihkan...");
+                    setTimeout(() => {
+                        window.location.href = "dashboard.html";
+                    }, 1500);
+                } else {
+                    const err = await response.json();
+                    showStatus("Gagal daftar: " + (err.error.message || "Terjadi kesalahan"), true);
+                }
+            } catch (error) {
+                showStatus("Kesalahan koneksi: " + error.message, true);
+            }
+        });
+
+        // --- LOGIN (GET METHOD) ---
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const userIdentifier = document.getElementById('login_user').value;
+            const userPass = document.getElementById('login_pss').value;
+            
+            showStatus("Memeriksa kredensial...");
+
+            // Airtable Filter Formula
+            const filterFormula = `AND({user_pss} = '${userPass}', OR({user_email} = '${userIdentifier}', {user_phone} = '${userIdentifier}'))`;
+            const encodedFormula = encodeURIComponent(filterFormula);
+            
+            try {
+                const response = await fetch(`${API_URL}?filterByFormula=${encodedFormula}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${AIRTABLE_TOKEN}`
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.records && result.records.length > 0) {
+                    // Ambil record ID dari Airtable
+                    const recordId = result.records[0].id;
+                    // Simpan ke localStorage
+                    localStorage.setItem('id', recordId);
+                    
+                    showStatus("Login Berhasil! Mengalihkan...");
+                    setTimeout(() => {
+                        window.location.href = "dashboard.html";
+                    }, 1500);
+                } else {
+                    showStatus("Email/No. Telepon atau Kata Sandi salah.", true);
+                }
+            } catch (error) {
+                showStatus("Kesalahan koneksi: " + error.message, true);
+            }
+        });
+    </script>
+</body>
+</html>
