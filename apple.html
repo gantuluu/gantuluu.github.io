@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full overflow-hidden">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Applestore Malaysia</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#000000">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        /* Base Styles & Fullscreen Support */
+        :root {
+            --app-height: 100%;
+        }
+        html, body {
+            height: 100vh;
+            height: var(--app-height);
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9fb;
+            color: #1d1d1f;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+            overscroll-behavior: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Prevent Zoom & Scroll */
+        .no-scroll { overflow: hidden; position: fixed; width: 100%; }
+
+        /* Splash Screen Animation */
+        #splash-screen {
+            background: white;
+            transition: opacity 0.6s ease-out, visibility 0.6s;
+        }
+        @keyframes logo-pop {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-logo { animation: logo-pop 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        
+        /* Spinner */
+        .spinner {
+            border: 2px solid rgba(0,0,0,0.1);
+            border-left-color: #000;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Navigation Layout */
+        main {
+            height: calc(100% - 64px);
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 20px;
+        }
+        
+        /* Bottom Nav Blur */
+        nav {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        /* Hide scrollbars but keep functionality */
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Banner Slider */
+        .banner-slide { transition: transform 0.5s ease-in-out; }
+
+        /* Modal Transitions */
+        .modal-overlay {
+            backdrop-filter: blur(4px);
+            transition: opacity 0.3s ease;
+        }
+        .bottom-sheet {
+            transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .bottom-sheet.active { transform: translateY(0); }
+    </style>
+</head>
+<body class="h-full flex flex-col">
+
+    <!-- SPLASH SCREEN -->
+    <div id="splash-screen" class="fixed inset-0 z-[9999] flex flex-col items-center justify-center pointer-events-none">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" 
+             class="w-24 h-24 animate-logo mb-6" alt="Apple Logo">
+        <h1 class="text-xl font-semibold tracking-tight text-gray-900 opacity-0 transition-opacity duration-1000 delay-300" id="splash-text">
+            Applestore Malaysia
+        </h1>
+        <div class="mt-8 flex flex-col items-center">
+            <div class="spinner"></div>
+            <p class="text-xs text-gray-400 mt-4 uppercase tracking-widest">Loading</p>
+        </div>
+    </div>
+
+    <!-- MAIN APP CONTAINER -->
+    <div id="app" class="flex flex-col h-full opacity-0 transition-opacity duration-500">
+        
+        <!-- PAGE CONTENT -->
+        <main id="view-container">
+            <!-- Content Injected Dynamically -->
+        </main>
+
+        <!-- BOTTOM NAVIGATION -->
+        <nav class="fixed bottom-0 left-0 right-0 h-16 border-t border-gray-100 flex items-center justify-around px-4 pb-safe z-50">
+            <button onclick="router.navigate('home')" class="nav-btn flex flex-col items-center gap-1 text-gray-400" data-page="home">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+                <span class="text-[10px] font-medium uppercase tracking-tighter">Home</span>
+            </button>
+            <button onclick="router.navigate('produk')" class="nav-btn flex flex-col items-center gap-1 text-gray-400" data-page="produk">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                </svg>
+                <span class="text-[10px] font-medium uppercase tracking-tighter">Produk</span>
+            </button>
+            <button onclick="router.navigate('profil')" class="nav-btn flex flex-col items-center gap-1 text-gray-400" data-page="profil">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                <span class="text-[10px] font-medium uppercase tracking-tighter">Profil</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- MODAL PORTAL -->
+    <div id="modal-container" class="fixed inset-0 z-[100] hidden">
+        <div class="modal-overlay absolute inset-0 bg-black/40 opacity-0" id="modal-overlay" onclick="closeModal()"></div>
+        <div id="bottom-sheet" class="bottom-sheet absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl overflow-hidden max-h-[90%] flex flex-col">
+            <!-- Modal Content Injected -->
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIG & CONSTANTS ---
+        const AIRTABLE = {
+            baseId: "appckXrV4iX7h9sbB",
+            token: "patnRUNwwesFmma1r.304dc044009d79629ca9534a2ea57eb5754f8978e9c6b7c276892f5534b304b3",
+            tables: { banner: "banner", user: "user" }
+        };
+        const PRODUCT_API = "https://opensheet.elk.sh/1x2Rtyeyq3WR6yFybA8stGP0mdI2dlKvBz6fhx7FIjhQ/Sheet1";
+
+        // --- PWA MANIFEST DYNAMIC GENERATION ---
+        (function generateManifest() {
+            const manifest = {
+                name: "Applestore Malaysia",
+                short_name: "Apple MY",
+                start_url: ".",
+                display: "standalone",
+                background_color: "#ffffff",
+                theme_color: "#000000",
+                icons: [{
+                    src: "https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg",
+                    sizes: "512x512",
+                    type: "image/svg+xml",
+                    purpose: "any maskable"
+                }]
+            };
+            const stringManifest = JSON.stringify(manifest);
+            const blob = new Blob([stringManifest], {type: 'application/json'});
+            const manifestURL = URL.createObjectURL(blob);
+            const link = document.createElement('link');
+            link.rel = 'manifest';
+            link.href = manifestURL;
+            document.head.appendChild(link);
+        })();
+
+        // --- UTILS & CORE LOGIC ---
+        const state = {
+            user: null,
+            products: [],
+            banners: [],
+            activeFilter: 'All',
+            activePage: 'home'
+        };
+
+        const formatMYR = (num) => new Intl.NumberFormat('ms-MY', { style: 'currency', currency: 'MYR' }).format(num);
+
+        const fetchAirtable = async (table, filter = "") => {
+            const url = `https://api.airtable.com/v0/${AIRTABLE.baseId}/${table}${filter ? `?filterByFormula=${encodeURIComponent(filter)}` : ""}`;
+            const res = await fetch(url, { headers: { Authorization: `Bearer ${AIRTABLE.token}` } });
+            return await res.json();
+        };
+
+        const updateAirtable = async (table, recordId, fields) => {
+            const url = `https://api.airtable.com/v0/${AIRTABLE.baseId}/${table}/${recordId}`;
+            const res = await fetch(url, {
+                method: 'PATCH',
+                headers: { 
+                    Authorization: `Bearer ${AIRTABLE.token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ fields })
+            });
+            return await res.json();
+        };
+
+        // --- ROUTER & PAGE RENDERING ---
+        const router = {
+            navigate(page) {
+                state.activePage = page;
+                document.querySelectorAll('.nav-btn').forEach(btn => {
+                    if(btn.dataset.page === page) {
+                        btn.classList.add('text-black');
+                        btn.classList.remove('text-gray-400');
+                    } else {
+                        btn.classList.remove('text-black');
+                        btn.classList.add('text-gray-400');
+                    }
+                });
+                this.render(page);
+            },
+
+            async render(page) {
+                const container = document.getElementById('view-container');
+                container.innerHTML = `<div class="p-10 text-center"><div class="spinner mx-auto mb-2"></div><p class="text-xs text-gray-400 uppercase tracking-widest">Loading ${page}</p></div>`;
+
+                if (page === 'home') this.renderHome(container);
+                else if (page === 'produk') this.renderProduk(container);
+                else if (page === 'profil') this.renderProfil(container);
+            },
+
+            async renderHome(container) {
+                if (state.banners.length === 0) {
+                    const data = await fetchAirtable(AIRTABLE.tables.banner);
+                    state.banners = data.records.map(r => r.fields);
+                }
+
+                container.innerHTML = `
+                    <section class="relative w-full overflow-hidden h-72 bg-black">
+                        <div id="banner-track" class="flex h-full transition-transform duration-500">
+                            ${state.banners.map(b => `
+                                <div class="min-w-full h-full relative">
+                                    <img src="${b.image_url}" class="w-full h-full object-cover opacity-80" />
+                                    <div class="absolute bottom-10 left-6 text-white">
+                                        <h2 class="text-3xl font-bold">${b.title}</h2>
+                                        <p class="text-sm opacity-90">${b.subtitle}</p>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </section>
+                    <section class="p-6">
+                        <h3 class="text-xl font-bold mb-4">Edisi Baharu</h3>
+                        <div class="grid grid-cols-1 gap-4">
+                            <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between">
+                                <div>
+                                    <h4 class="font-semibold text-lg">iPhone 15 Pro</h4>
+                                    <p class="text-xs text-gray-500">Titanium. Sangat Kuat.</p>
+                                </div>
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" class="w-8 opacity-10" />
+                            </div>
+                        </div>
+                    </section>
+                `;
+                this.initSlider();
+            },
+
+            initSlider() {
+                let idx = 0;
+                const track = document.getElementById('banner-track');
+                if (!track) return;
+                setInterval(() => {
+                    idx = (idx + 1) % state.banners.length;
+                    track.style.transform = `translateX(-${idx * 100}%)`;
+                }, 3000);
+            },
+
+            async renderProduk(container) {
+                if (state.products.length === 0) {
+                    const res = await fetch(PRODUCT_API);
+                    const raw = await res.json();
+                    
+                    // Group by item_group_id
+                    const grouped = raw.reduce((acc, curr) => {
+                        const gid = curr.item_group_id;
+                        if (!acc[gid]) {
+                            acc[gid] = { ...curr, variants: [] };
+                        }
+                        acc[gid].variants.push({
+                            color: curr.color,
+                            size: curr.size,
+                            price: parseFloat(curr.price),
+                            sale_price: parseFloat(curr.sale_price),
+                            availability: curr.availability,
+                            image_link: curr.image_link
+                        });
+                        return acc;
+                    }, {});
+                    state.products = Object.values(grouped);
+                }
+
+                const categories = ['All', ...new Set(state.products.map(p => p.category))];
+                const filtered = state.activeFilter === 'All' 
+                    ? state.products 
+                    : state.products.filter(p => p.category === state.activeFilter);
+
+                container.innerHTML = `
+                    <div class="sticky top-0 bg-white/80 backdrop-blur-md z-10 p-4 border-b border-gray-100">
+                        <div class="flex gap-2 overflow-x-auto hide-scroll">
+                            ${categories.map(cat => `
+                                <button onclick="router.setFilter('${cat}')" 
+                                        class="px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${state.activeFilter === cat ? 'bg-black text-white' : 'bg-gray-100 text-gray-600'}">
+                                    ${cat}
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 p-4">
+                        ${filtered.map((p, i) => `
+                            <div class="bg-white rounded-3xl p-4 border border-gray-100 shadow-sm flex flex-col items-center" onclick="openProductDetail(${i})">
+                                <img src="${p.image_link}" class="w-full h-32 object-contain mb-4" />
+                                <div class="w-full">
+                                    <h4 class="text-sm font-semibold truncate">${p.title}</h4>
+                                    <p class="text-xs text-gray-400 mb-2">${p.category}</p>
+                                    <p class="text-sm font-bold text-gray-900">${formatMYR(p.sale_price || p.price)}</p>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            },
+
+            setFilter(cat) {
+                state.activeFilter = cat;
+                this.render('produk');
+            },
+
+            async renderProfil(container) {
+                const userId = localStorage.getItem('user_id');
+                if (!userId) {
+                    this.renderLogin(container);
+                    return;
+                }
+
+                try {
+                    const res = await fetch(`https://api.airtable.com/v0/${AIRTABLE.baseId}/${AIRTABLE.tables.user}/${userId}`, {
+                        headers: { Authorization: `Bearer ${AIRTABLE.token}` }
+                    });
+                    const user = await res.json();
+                    state.user = user;
+
+                    const fields = user.fields;
+                    container.innerHTML = `
+                        <div class="p-6">
+                            <div class="flex flex-col items-center mb-8">
+                                <div class="w-24 h-24 rounded-full bg-gray-200 mb-4 overflow-hidden border-4 border-white shadow-lg">
+                                    <img src="${fields.profile_img || 'https://www.apple.com/v/apple-events/home/af/images/overview/hero/logo__d9m1jshd78ee_large.png'}" class="w-full h-full object-cover">
+                                </div>
+                                <h2 class="text-2xl font-bold">${fields.name || 'Apple User'}</h2>
+                                <p class="text-sm text-gray-400">${fields.phone}</p>
+                            </div>
+
+                            <div class="bg-black text-white p-6 rounded-3xl mb-6 shadow-xl relative overflow-hidden">
+                                <div class="relative z-10">
+                                    <p class="text-xs uppercase tracking-widest opacity-60 mb-1">Balance Available</p>
+                                    <h3 class="text-3xl font-bold mb-6">${formatMYR(fields.balance || 0)}</h3>
+                                    <div class="flex justify-between items-end">
+                                        <p class="text-sm opacity-80">**** **** **** ${String(fields.account_number).slice(-4)}</p>
+                                        <button onclick="openTopUp()" class="bg-white text-black px-4 py-2 rounded-xl text-xs font-bold uppercase">Top Up</button>
+                                    </div>
+                                </div>
+                                <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
+                            </div>
+
+                            <div class="space-y-4">
+                                <button onclick="openEditProfile()" class="w-full bg-white p-4 rounded-2xl flex items-center justify-between border border-gray-100">
+                                    <span class="font-medium">Sunting Profil</span>
+                                    <svg class="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
+                                </button>
+                                <div class="bg-white p-4 rounded-2xl border border-gray-100">
+                                    <h4 class="text-xs font-bold uppercase text-gray-400 mb-3 tracking-widest">Maklumat Akaun</h4>
+                                    <div class="space-y-3">
+                                        <div class="flex justify-between"><span class="text-gray-400 text-sm">Email</span><span class="text-sm font-medium">${fields.email || '-'}</span></div>
+                                        <div class="flex justify-between"><span class="text-gray-400 text-sm">Bank</span><span class="text-sm font-medium">${fields.bank || '-'}</span></div>
+                                        <div class="flex justify-between"><span class="text-gray-400 text-sm">Alamat</span><span class="text-sm font-medium">${fields.address || '-'}</span></div>
+                                    </div>
+                                </div>
+                                <button onclick="logout()" class="w-full text-red-500 font-bold p-4 text-center mt-4">Log Keluar</button>
+                            </div>
+                        </div>
+                    `;
+                } catch (e) {
+                    localStorage.removeItem('user_id');
+                    this.render('profil');
+                }
+            },
+
+            renderLogin(container) {
+                container.innerHTML = `
+                    <div class="p-8 h-full flex flex-col justify-center">
+                        <div class="mb-10 text-center">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" class="w-12 mx-auto mb-6">
+                            <h2 class="text-3xl font-bold mb-2">Log Masuk</h2>
+                            <p class="text-gray-400">Gunakan akaun Apple Store anda</p>
+                        </div>
+                        <div class="space-y-4" id="login-form">
+                            <div class="relative">
+                                <input type="tel" id="login-phone" placeholder="No. Telefon" class="w-full p-4 rounded-2xl bg-gray-100 border-none focus:ring-2 focus:ring-black outline-none transition-all">
+                            </div>
+                            <div class="relative">
+                                <input type="password" id="login-pass" placeholder="Kata Laluan" class="w-full p-4 rounded-2xl bg-gray-100 border-none focus:ring-2 focus:ring-black outline-none transition-all">
+                            </div>
+                            <button onclick="handleLogin()" id="login-btn" class="w-full bg-black text-white p-4 rounded-2xl font-bold text-lg shadow-lg active:scale-95 transition-transform">Masuk</button>
+                        </div>
+                    </div>
+                `;
+            }
+        };
+
+        // --- AUTH LOGIC ---
+        async function handleLogin() {
+            const phone = document.getElementById('login-phone').value;
+            const pass = document.getElementById('login-pass').value;
+            const btn = document.getElementById('login-btn');
+
+            if (!phone || !pass) return;
+
+            btn.disabled = true;
+            btn.innerHTML = `<div class="spinner border-white mx-auto"></div>`;
+
+            try {
+                const data = await fetchAirtable(AIRTABLE.tables.user, `AND({phone}='${phone}', {password}='${pass}')`);
+                if (data.records.length > 0) {
+                    localStorage.setItem('user_id', data.records[0].id);
+                    router.render('profil');
+                } else {
+                    alert("No. telefon atau kata laluan salah");
+                    btn.disabled = false;
+                    btn.innerHTML = "Masuk";
+                }
+            } catch (e) {
+                alert("Ralat sambungan. Sila cuba lagi.");
+                btn.disabled = false;
+                btn.innerHTML = "Masuk";
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('user_id');
+            router.navigate('profil');
+        }
+
+        // --- MODAL & ACTION LOGIC ---
+        function openModal(content) {
+            const container = document.getElementById('modal-container');
+            const sheet = document.getElementById('bottom-sheet');
+            const overlay = document.getElementById('modal-overlay');
+            
+            sheet.innerHTML = content;
+            container.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.style.opacity = '1';
+                sheet.classList.add('active');
+            }, 10);
+            document.body.classList.add('no-scroll');
+        }
+
+        function closeModal() {
+            const sheet = document.getElementById('bottom-sheet');
+            const overlay = document.getElementById('modal-overlay');
+            
+            sheet.classList.remove('active');
+            overlay.style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('modal-container').classList.add('hidden');
+                document.body.classList.remove('no-scroll');
+            }, 400);
+        }
+
+        function openProductDetail(index) {
+            const p = (state.activeFilter === 'All' ? state.products : state.products.filter(item => item.category === state.activeFilter))[index];
+            let selectedVariant = p.variants[0];
+
+            const renderDetails = () => `
+                <div class="p-6 relative">
+                    <button onclick="closeModal()" class="absolute right-6 top-6 w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                    <div class="mb-6 flex justify-center">
+                        <img id="detail-img" src="${selectedVariant.image_link}" class="h-56 object-contain">
+                    </div>
+                    <h3 class="text-2xl font-bold mb-1">${p.title}</h3>
+                    <p class="text-gray-400 text-sm mb-4">${p.category}</p>
+                    <p class="text-gray-600 text-sm leading-relaxed mb-6">${p.description}</p>
+                    
+                    <div class="mb-6">
+                        <p class="text-xs font-bold uppercase text-gray-400 mb-3">Varian & Warna</p>
+                        <div class="flex flex-wrap gap-2">
+                            ${p.variants.map((v, i) => `
+                                <button onclick="selectVariant(${index}, ${i})" 
+                                        class="px-4 py-2 rounded-xl border-2 text-sm font-medium transition-all ${v === selectedVariant ? 'border-black bg-black text-white' : 'border-gray-100 bg-gray-50 text-gray-600'}">
+                                    ${v.color} ${v.size ? `- ${v.size}` : ''}
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-6 border-t border-gray-100 mt-6">
+                        <div>
+                            <p class="text-xs text-gray-400">Harga Terkini</p>
+                            <p class="text-2xl font-bold" id="detail-price">${formatMYR(selectedVariant.sale_price || selectedVariant.price)}</p>
+                        </div>
+                        <button class="bg-black text-white px-10 py-4 rounded-2xl font-bold">Beli Sekarang</button>
+                    </div>
+                </div>
+            `;
+            openModal(renderDetails());
+        }
+
+        function selectVariant(pIdx, vIdx) {
+            const p = (state.activeFilter === 'All' ? state.products : state.products.filter(item => item.category === state.activeFilter))[pIdx];
+            const variant = p.variants[vIdx];
+            document.getElementById('detail-img').src = variant.image_link;
+            document.getElementById('detail-price').innerText = formatMYR(variant.sale_price || variant.price);
+            
+            // Re-render varian buttons active state
+            const buttons = document.querySelectorAll('.bottom-sheet button[onclick^="selectVariant"]');
+            buttons.forEach((btn, i) => {
+                if(i === vIdx) {
+                    btn.className = "px-4 py-2 rounded-xl border-2 text-sm font-medium transition-all border-black bg-black text-white";
+                } else {
+                    btn.className = "px-4 py-2 rounded-xl border-2 text-sm font-medium transition-all border-gray-100 bg-gray-50 text-gray-600";
+                }
+            });
+        }
+
+        function openTopUp() {
+            const amounts = [500, 1000, 2500, 5000];
+            openModal(`
+                <div class="p-6">
+                    <h3 class="text-xl font-bold mb-6">Tambah Baki</h3>
+                    <div class="grid grid-cols-2 gap-3 mb-6">
+                        ${amounts.map(amt => `
+                            <button onclick="document.getElementById('topup-amt').value = ${amt}" class="bg-gray-100 p-4 rounded-2xl font-bold text-center active:bg-black active:text-white transition-colors">
+                                ${formatMYR(amt)}
+                            </button>
+                        `).join('')}
+                    </div>
+                    <div class="mb-6">
+                        <label class="text-xs font-bold text-gray-400 uppercase mb-2 block">Jumlah Manual (MYR)</label>
+                        <input type="number" id="topup-amt" class="w-full bg-gray-100 p-4 rounded-2xl outline-none font-bold text-xl" placeholder="0.00">
+                    </div>
+                    <button id="topup-submit" onclick="handleTopUp()" class="w-full bg-black text-white py-5 rounded-2xl font-bold shadow-lg">Sahkan Top Up</button>
+                </div>
+            `);
+        }
+
+        async function handleTopUp() {
+            const amt = parseFloat(document.getElementById('topup-amt').value);
+            if (!amt || amt <= 0) return;
+
+            const btn = document.getElementById('topup-submit');
+            btn.disabled = true;
+            btn.innerHTML = `<div class="spinner border-white mx-auto"></div>`;
+
+            const currentBalance = parseFloat(state.user.fields.balance || 0);
+            const newBalance = currentBalance + amt;
+
+            try {
+                await updateAirtable(AIRTABLE.tables.user, state.user.id, { balance: newBalance });
+                closeModal();
+                router.render('profil');
+            } catch (e) {
+                alert("Gagal mengemaskini baki");
+                btn.disabled = false;
+                btn.innerHTML = "Sahkan Top Up";
+            }
+        }
+
+        function openEditProfile() {
+            const f = state.user.fields;
+            openModal(`
+                <div class="p-6 overflow-y-auto">
+                    <h3 class="text-xl font-bold mb-6">Sunting Profil</h3>
+                    <div class="space-y-4 mb-8">
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Nama Penuh</label>
+                            <input id="edit-name" value="${f.name || ''}" class="w-full bg-gray-100 p-3 rounded-xl outline-none">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Email</label>
+                            <input id="edit-email" value="${f.email || ''}" class="w-full bg-gray-100 p-3 rounded-xl outline-none">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase mb-1 block">URL Foto Profil</label>
+                            <input id="edit-img" value="${f.profile_img || ''}" class="w-full bg-gray-100 p-3 rounded-xl outline-none">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Nama Bank</label>
+                            <input id="edit-bank" value="${f.bank || ''}" class="w-full bg-gray-100 p-3 rounded-xl outline-none">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase mb-1 block">No Akaun</label>
+                            <input id="edit-acc" type="number" value="${f.account_number || ''}" class="w-full bg-gray-100 p-3 rounded-xl outline-none">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Alamat Penghantaran</label>
+                            <textarea id="edit-addr" class="w-full bg-gray-100 p-3 rounded-xl outline-none h-20">${f.address || ''}</textarea>
+                        </div>
+                    </div>
+                    <button id="edit-submit" onclick="handleEditProfile()" class="w-full bg-black text-white py-4 rounded-2xl font-bold shadow-lg">Simpan Perubahan</button>
+                    <div class="h-8"></div>
+                </div>
+            `);
+        }
+
+        async function handleEditProfile() {
+            const btn = document.getElementById('edit-submit');
+            btn.disabled = true;
+            btn.innerHTML = `<div class="spinner border-white mx-auto"></div>`;
+
+            const updates = {
+                name: document.getElementById('edit-name').value,
+                email: document.getElementById('edit-email').value,
+                profile_img: document.getElementById('edit-img').value,
+                bank: document.getElementById('edit-bank').value,
+                account_number: parseInt(document.getElementById('edit-acc').value) || 0,
+                address: document.getElementById('edit-addr').value
+            };
+
+            try {
+                await updateAirtable(AIRTABLE.tables.user, state.user.id, updates);
+                closeModal();
+                router.render('profil');
+            } catch (e) {
+                alert("Gagal mengemaskini profil");
+                btn.disabled = false;
+                btn.innerHTML = "Simpan Perubahan";
+            }
+        }
+
+        // --- INITIALIZATION ---
+        window.addEventListener('DOMContentLoaded', () => {
+            // Splash Animation Sequence
+            setTimeout(() => document.getElementById('splash-text').classList.add('opacity-100'), 500);
+            
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                const app = document.getElementById('app');
+                splash.classList.add('opacity-0');
+                app.classList.remove('opacity-0');
+                setTimeout(() => splash.remove(), 600);
+            }, 2500);
+
+            // Handle Keyboard/Viewport height on mobile
+            const updateHeight = () => {
+                document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
+            };
+            window.addEventListener('resize', updateHeight);
+            updateHeight();
+
+            // Zoom Prevention
+            document.addEventListener('gesturestart', (e) => e.preventDefault());
+            document.addEventListener('gesturechange', (e) => e.preventDefault());
+            document.addEventListener('gestureend', (e) => e.preventDefault());
+            document.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && (e.key === '+' || e.key === '-' || e.key === '0')) e.preventDefault();
+            });
+
+            // Start App
+            router.navigate('home');
+        });
+
+    </script>
+</body>
+</html>
