@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JSON to CSV Converter</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+
+  <div class="bg-white w-full max-w-xl rounded-xl shadow-lg p-6">
+    <h1 class="text-2xl font-bold mb-4">JSON → CSV Converter</h1>
+
+    <label class="block mb-2 font-medium">JSON URL</label>
+    <input id="jsonUrl" type="text" placeholder="https://example.com/data.json"
+      class="w-full border rounded-lg p-2 mb-4" />
+
+    <button onclick="convert()"
+      class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">
+      Convert & Download CSV
+    </button>
+
+    <pre id="output" class="mt-4 bg-gray-900 text-green-400 p-3 rounded-lg text-sm overflow-x-auto hidden"></pre>
+  </div>
+
+  <script>
+    async function convert() {
+      const url = document.getElementById('jsonUrl').value;
+      if (!url) return alert('Masukkan JSON URL');
+
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+
+        let csv = '';
+
+        if (Array.isArray(data)) {
+          const headers = Object.keys(data[0]).join(',');
+          csv += headers + '\n';
+          data.forEach(item => {
+            csv += Object.values(item).map(v => `"${v}"`).join(',') + '\n';
+          });
+        } else {
+          const headers = Object.keys(data).join(',');
+          const values = Object.values(data).map(v => `"${v}"`).join(',');
+          csv = headers + '\n' + values;
+        }
+
+        document.getElementById('output').classList.remove('hidden');
+        document.getElementById('output').textContent = csv;
+
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'data.csv';
+        a.click();
+      } catch (e) {
+        alert('Gagal mengambil atau mengubah JSON');
+      }
+    }
+  </script>
+
+</body>
+</html>
