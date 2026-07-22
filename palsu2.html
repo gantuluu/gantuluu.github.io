@@ -367,15 +367,15 @@
     <div class="modal-box">
       <div class="text-lg font-bold text-green-400 mb-2 tracking-wider">
         ==============================<br>
-        EXECUTE CODE NOW?<br>
+        EXECUTE CORE KERNEL PROCESS?<br>
         ==============================
       </div>
       <div class="text-sm text-green-300 mb-6 leading-relaxed">
-        Sistem akan menjalankan simulasi boot 10 detik.<br>
-        Setelah 10 detik, permintaan input otorisasi akan muncul untuk mengambil data JSON endpoint.
+        Sistem akan mengeksekusi inisialisasi kernel & dekripsi modul jaringan (10.0 detik).<br>
+        Otorisasi token keamanan tingkat tinggi diperlukan setelah proses selesai untuk membuka payload data resmi.
       </div>
       <div class="flex justify-center gap-4">
-        <button id="btn-yes" class="modal-btn">[ YA, JALANKAN ]</button>
+        <button id="btn-yes" class="modal-btn">[ JALANKAN PROSES ]</button>
         <button id="btn-no" class="modal-btn">[ BATAL ]</button>
       </div>
     </div>
@@ -386,7 +386,7 @@
     <div class="top-bar">
       <div class="top-bar-title">
         <div class="status-dot"></div>
-        <span class="text-xs sm:text-sm">KALI LINUX KERNEL v6.12.0-SIM // INTELLIGENCE DOSSIER</span>
+        <span class="text-xs sm:text-sm">KALI LINUX KERNEL v6.12.0-RELEASE // INTELLIGENCE DOSSIER</span>
       </div>
 
       <div class="flex items-center gap-2 flex-wrap">
@@ -412,11 +412,11 @@
     <div id="terminal-wrapper" class="terminal-window">
       <div class="terminal-header">
         <span>root@kali:~# bash -c "init_kernel.sh --fetch-dossier"</span>
-        <span>TTY1 // INTERACTIVE SHELL SIMULATOR</span>
+        <span>TTY1 // INTERACTIVE ROOT SHELL</span>
       </div>
 
       <div id="terminal-body" class="terminal-body">
-        <div class="log-line text-green-400">System ready. Klik tombol [YA, JALANKAN] untuk memulai alur simulasi.</div>
+        <div class="log-line text-green-400">System core initialized. Klik [JALANKAN PROSES] untuk mengeksekusi kernel boot.</div>
       </div>
 
       <div class="flex items-center p-2 bg-black border-t border-green-900 gap-2">
@@ -784,7 +784,7 @@
       <div class="text-sm font-bold text-amber-400 mb-2 tracking-wider">
         ==============================<br>
         SYSTEM AUTHORIZATION REQUIRED<br>
-        BOOT SIMULATION COMPLETE (10s)<br>
+        KERNEL BOOT COMPLETE (10.0s)<br>
         ==============================
       </div>
       <div class="text-xs text-green-300 mb-4 leading-relaxed">
@@ -903,12 +903,54 @@
       line.className = `log-line ${className}`;
       line.innerHTML = htmlContent;
       terminalBody.appendChild(line);
+
+      // Keep DOM clean by trimming logs if too long
+      if (terminalBody.children.length > 400) {
+        terminalBody.removeChild(terminalBody.firstChild);
+      }
+
       terminalBody.scrollTop = terminalBody.scrollHeight;
-      playBeep(300 + Math.random() * 400, 0.02, 'square');
+      if (Math.random() < 0.2) {
+        playBeep(300 + Math.random() * 400, 0.01, 'square');
+      }
     }
 
     let isRunning = false;
-    let bootTimer = null;
+    let bootInterval = null;
+
+    const fastLogTemplates = [
+      "ALLOC_MEM_BLOCK 0x7FFF{HEX4} :: STATUS_OK",
+      "DECRYPT_STREAM -- cipher=AES-256-GCM key=0x{HEX8}",
+      "NET_ROUTE :: gateway 192.168.1.1 -- packet_id={RAND5} [ACK]",
+      "KERNEL_MODULE :: {MOD_NAME} loaded successfully in {TIME}ms",
+      "SYS_CALL :: sys_read(fd=3, buf=0x{HEX8}, count=4096) = 4096",
+      "SSL_HANDSHAKE :: ECDHE-RSA-AES128-GCM-SHA256 verified",
+      "THREAD_WORKER_0{INT1} :: Task execution sequence finished",
+      "INTEGRITY_CHECK :: SHA256:{HASH} matches system registry",
+      "PARSING_NODE_METADATA :: node_id=ND-{RAND4} -- region=ID-JKT",
+      "SYNC_TIME :: NTP server pool.ntp.org offset=-0.00012s",
+      "CPU_CORE_{INT1} :: frequency throttled to 4.20GHz [TEMP 41C]",
+      "DB_CACHE_QUERY :: cached key 'usr_token_{RAND4}' retrieved in 0.4ms"
+    ];
+
+    const moduleNames = ["net_filter", "crypto_engine", "fs_vfs", "sec_vault", "pci_bus", "e1000e", "systemd_core", "iptables_raw"];
+
+    function generateUltraFastLog() {
+      const tmpl = fastLogTemplates[Math.floor(Math.random() * fastLogTemplates.length)];
+      const log = tmpl
+        .replace('{HEX4}', Math.floor(Math.random() * 0xffff).toString(16).padStart(4, '0').toUpperCase())
+        .replace('{HEX8}', Math.floor(Math.random() * 0xffffffff).toString(16).padStart(8, '0').toUpperCase())
+        .replace('{RAND5}', Math.floor(10000 + Math.random() * 90000))
+        .replace('{RAND4}', Math.floor(1000 + Math.random() * 9000))
+        .replace('{MOD_NAME}', moduleNames[Math.floor(Math.random() * moduleNames.length)])
+        .replace('{TIME}', (Math.random() * 5).toFixed(2))
+        .replace('{INT1}', Math.floor(Math.random() * 8))
+        .replace('{HASH}', Array.from({length: 8}, () => Math.floor(Math.random() * 16).toString(16)).join(''));
+
+      const classes = ['log-info', 'log-info', 'log-info', 'log-highlight', 'log-warn'];
+      const cls = classes[Math.floor(Math.random() * classes.length)];
+      appendLog(`[${new Date().toISOString().substring(11, 23)}] ${log}`, cls);
+    }
 
     document.getElementById('btn-yes').addEventListener('click', () => {
       initAudio();
@@ -918,30 +960,38 @@
 
     document.getElementById('btn-no').addEventListener('click', () => {
       document.getElementById('modal').style.display = 'none';
-      appendLog("Simulasi dibatalkan oleh pengguna.", "log-warn");
+      appendLog("Proses dibatalkan oleh pengguna.", "log-warn");
     });
 
     function start10sBootSequence() {
       isRunning = true;
       appendLog("==================================================", "log-highlight");
-      appendLog("MEMULAI PROCESS BOOT SYSTEM (10 DETIK)...", "log-highlight");
+      appendLog("INITIALIZING SYSTEM KERNEL & NETWORK STACK...", "log-highlight");
       appendLog("==================================================", "log-highlight");
 
       const startTime = Date.now();
-      const interval = setInterval(() => {
-        const elapsed = Math.floor((Date.now() - startTime) / 1000);
-        if (elapsed < 10) {
-          appendLog(`[BOOT ${elapsed + 1}s/10s] Initializing kernel module & scanning network packets... 0x${Math.floor(Math.random()*0xffffff).toString(16)}`);
+      
+      // High speed log output loop (every 12ms generate 3 lines = ~250 lines/second)
+      bootInterval = setInterval(() => {
+        const elapsed = Date.now() - startTime;
+        
+        if (elapsed < 10000) {
+          // Output 3-5 lines per tick for rapid streaming
+          for (let i = 0; i < 4; i++) {
+            generateUltraFastLog();
+          }
         } else {
-          clearInterval(interval);
+          clearInterval(bootInterval);
+          appendLog("==================================================", "log-highlight");
+          appendLog("[BOOT COMPLETE] All system modules initialized in 10.00s", "log-highlight");
+          appendLog("==================================================", "log-highlight");
           promptAuthModal();
         }
-      }, 1000);
+      }, 12);
     }
 
     function promptAuthModal() {
-      appendLog("[SECURITY] Booting 10 detik selesai. Kode dihentikan sementara.", "log-warn");
-      appendLog("[SECURITY] Meminta otorisasi pengguna...", "log-highlight");
+      appendLog("[SECURITY] Inisialisasi kernel 10.0s selesai. Menunggu otorisasi...", "log-warn");
       document.getElementById('auth-modal').style.display = 'flex';
     }
 
@@ -961,7 +1011,7 @@
         jsonPayload = await response.json();
         appendLog(`[HTTP 200 OK] Data berhasil di-fetch dari ${endpoint}`, 'log-highlight');
       } catch (e) {
-        appendLog(`[HTTP NOTICE] Fetch langsung (${e.message}). Menggunakan schema JSON fallback lengkap...`, 'log-warn');
+        appendLog(`[HTTP NOTICE] Fetch langsung (${e.message}). Menggunakan schema JSON payload resmi...`, 'log-warn');
         jsonPayload = {
           "id": "USR-99812-IDN",
           "nip": "198203152006041002",
@@ -1111,11 +1161,11 @@
       renderSocialProfileUI(jsonPayload);
       
       appendLog("==================================================", "log-highlight");
-      appendLog("[SYSTEM] Pindah ke tampilan Fullpage Social Media UI...", "log-highlight");
+      appendLog("[SYSTEM] Decoding intelligence dossier payload...", "log-highlight");
       
       setTimeout(() => {
         showSocialProfileView();
-      }, 800);
+      }, 600);
     }
 
     function renderSocialProfileUI(d) {
