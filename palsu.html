@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>KALI LINUX // SYSTEM TERMINAL SIMULATOR v2</title>
+
+  <style>
+    :root {
+      --bg-color: #020403;
+      --primary: #00ff66;
+      --primary-dim: #005522;
+      --primary-bright: #66ffa3;
+      --primary-glow: rgba(0, 255, 102, 0.4);
+      --dark-surface: rgba(4, 12, 7, 0.88);
+      --border-color: #00441b;
+      --alert-red: #ff3344;
+      --amber: #ffaa00;
+      --cyan: #00f0ff;
+      --font-stack: 'Consolas', 'Courier New', 'Fira Code', monospace;
+    }
+
+    /* Palette overrides for dynamic themes */
+    body[data-theme="cyan"] {
+      --primary: #00f0ff;
+      --primary-dim: #004455;
+      --primary-bright: #80f7ff;
+      --primary-glow: rgba(0, 240, 255, 0.4);
+      --border-color: #004d5e;
+    }
+
+    body[data-theme="amber"] {
+      --primary: #ffaa00;
+      --primary-dim: #553300;
+      --primary-bright: #ffcc66;
+      --primary-glow: rgba(255, 170, 0, 0.4);
+      --border-color: #5e3f00;
+    }
+
+    body[data-theme="red"] {
+      --primary: #ff3344;
+      --primary-dim: #55000a;
+      --primary-bright: #ff8899;
+      --primary-glow: rgba(255, 51, 68, 0.4);
+      --border-color: #5e000e;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    html, body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background-color: var(--bg-color);
+      color: var(--primary);
+      font-family: var(--font-stack);
+      font-size: 13px;
+      line-height: 1.4;
+      transition: color 0.3s ease;
+    }
+
+    .crt-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 999;
+      background: linear-gradient(
+        rgba(18, 16, 16, 0) 50%, 
+        rgba(0, 0, 0, 0.4) 50%
+      ), linear-gradient(
+        90deg,
+        rgba(255, 0, 0, 0.03),
+        rgba(0, 255, 0, 0.01),
+        rgba(0, 0, 255, 0.03)
+      );
+      background-size: 100% 3px, 6px 100%;
+      box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.85);
+      animation: crtFlicker 0.15s infinite;
+    }
+
+    @keyframes crtFlicker {
+      0% { opacity: 0.96; }
+      50% { opacity: 1; }
+      100% { opacity: 0.97; }
+    }
+
+    #matrix-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 1;
+      opacity: 0.22;
+    }
+
+    .dashboard-container {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      width: 100vw;
+      height: 100vh;
+      padding: 10px;
+      gap: 8px;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--dark-surface);
+      border: 1px solid var(--border-color);
+      padding: 6px 14px;
+      border-radius: 4px;
+      box-shadow: 0 0 10px var(--primary-glow);
+      font-weight: bold;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .top-bar-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      letter-spacing: 1.5px;
+      text-shadow: 0 0 8px var(--primary-glow);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--primary);
+      box-shadow: 0 0 8px var(--primary);
+      animation: statusPulse 1.5s infinite alternate;
+    }
+
+    @keyframes statusPulse {
+      0% { opacity: 0.3; }
+      100% { opacity: 1; }
+    }
+
+    .top-bar-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 11px;
+    }
+
+    .ctrl-btn {
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid var(--border-color);
+      color: var(--primary);
+      padding: 3px 8px;
+      font-family: var(--font-stack);
+      font-size: 10px;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .ctrl-btn:hover, .ctrl-btn.active {
+      background: var(--primary);
+      color: #000;
+      box-shadow: 0 0 8px var(--primary-glow);
+    }
+
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 8px;
+      flex: 1;
+      min-height: 0;
+    }
+
+    @media (max-width: 920px) {
+      .main-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr auto;
+      }
+      .side-panel {
+        display: none;
+      }
+    }
+
+    .terminal-window {
+      background: rgba(0, 0, 0, 0.88);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.95);
+    }
+
+    .terminal-header {
+      background: rgba(0, 30, 10, 0.7);
+      padding: 6px 12px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: var(--primary-bright);
+    }
+
+    .terminal-body {
+      flex: 1;
+      padding: 12px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      scrollbar-width: none;
+    }
+
+    .terminal-body::-webkit-scrollbar {
+      display: none;
+    }
+
+    .log-line {
+      word-break: break-all;
+      text-shadow: 0 0 4px var(--primary-glow);
+      line-height: 1.35;
+    }
+
+    .log-info { color: var(--primary); }
+    .log-warn { color: var(--amber); }
+    .log-alert { color: var(--alert-red); }
+    .log-highlight { color: var(--primary-bright); font-weight: bold; }
+    
+    .log-auth {
+      color: var(--primary-bright);
+      background: rgba(0, 255, 102, 0.08);
+      border: 1px solid var(--primary);
+      padding: 12px;
+      margin: 10px 0;
+      text-align: center;
+      box-shadow: 0 0 20px var(--primary-glow);
+      border-radius: 4px;
+    }
+
+    .terminal-input-row {
+      display: flex;
+      align-items: center;
+      padding: 8px 12px;
+      background: rgba(0, 0, 0, 0.95);
+      border-top: 1px solid var(--border-color);
+      gap: 8px;
+    }
+
+    .prompt-label {
+      color: var(--primary-bright);
+      font-weight: bold;
+      white-space: nowrap;
+    }
+
+    .cmd-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--primary-bright);
+      font-family: var(--font-stack);
+      font-size: 13px;
+      caret-color: var(--primary);
+    }
+
+    .mobile-actions {
+      display: flex;
+      gap: 6px;
+      padding: 6px 12px;
+      background: rgba(0, 15, 5, 0.9);
+      border-top: 1px solid var(--border-color);
+      overflow-x: auto;
+    }
+
+    .action-chip {
+      background: rgba(0, 40, 15, 0.8);
+      border: 1px solid var(--border-color);
+      color: var(--primary-bright);
+      padding: 3px 10px;
+      font-size: 10px;
+      border-radius: 3px;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    .action-chip:active {
+      background: var(--primary);
+      color: #000;
+    }
+
+    .side-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      overflow-y: auto;
+    }
+
+    .panel-card {
+      background: var(--dark-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .card-title {
+      font-size: 11px;
+      font-weight: bold;
+      color: var(--primary-bright);
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 4px;
+      letter-spacing: 1px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .metric-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+    }
+
+    .progress-bar-bg {
+      width: 110px;
+      height: 7px;
+      background: rgba(0, 30, 10, 0.8);
+      border: 1px solid var(--border-color);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--primary);
+      width: 40%;
+      box-shadow: 0 0 6px var(--primary);
+      transition: width 0.3s ease;
+    }
+
+    .profile-info {
+      display: grid;
+      grid-template-columns: 95px 1fr;
+      gap: 5px;
+      font-size: 11px;
+    }
+
+    .profile-label { color: var(--primary-dim); }
+    .profile-value { color: var(--primary-bright); font-weight: bold; }
+
+    .bottom-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--dark-surface);
+      border: 1px solid var(--border-color);
+      padding: 4px 12px;
+      font-size: 10px;
+      border-radius: 4px;
+      color: var(--primary-dim);
+    }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.94);
+      z-index: 1000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-box {
+      width: 90%;
+      max-width: 450px;
+      background: #000000;
+      border: 2px solid var(--primary);
+      box-shadow: 0 0 30px var(--primary-glow);
+      padding: 22px;
+      border-radius: 6px;
+      text-align: center;
+    }
+
+    .modal-header {
+      font-size: 13px;
+      font-weight: bold;
+      color: var(--primary-bright);
+      margin-bottom: 12px;
+      letter-spacing: 1px;
+      line-height: 1.5;
+    }
+
+    .modal-body {
+      font-size: 12px;
+      color: var(--primary);
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .modal-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+    }
+
+    .modal-btn {
+      background: rgba(0, 25, 10, 0.8);
+      border: 1px solid var(--primary);
+      color: var(--primary);
+      padding: 8px 22px;
+      font-family: var(--font-stack);
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+
+    .modal-btn:hover {
+      background: var(--primary);
+      color: #000000;
+      box-shadow: 0 0 14px var(--primary);
+    }
+
+    .cursor {
+      display: inline-block;
+      width: 8px;
+      height: 14px;
+      background: var(--primary);
+      margin-left: 2px;
+      vertical-align: middle;
+      animation: cursorBlink 0.8s infinite;
+    }
+
+    @keyframes cursorBlink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+  </style>
+</head>
+<body data-theme="green">
+
+  <div class="crt-overlay"></div>
+  <canvas id="matrix-canvas"></canvas>
+
+  <!-- Startup Confirmation Modal -->
+  <div id="modal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-header">
+        ==============================<br>
+        EXECUTE CODE NOW?<br>
+        ==============================
+      </div>
+      <div class="modal-body">
+        This simulation will display a fictional terminal animation.<br>
+        Proceed?
+      </div>
+      <div class="modal-buttons">
+        <button id="btn-yes" class="modal-btn">[ YES ]</button>
+        <button id="btn-no" class="modal-btn">[ NO ]</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="dashboard-container">
+    <!-- Top Header Bar -->
+    <div class="top-bar">
+      <div class="top-bar-title">
+        <div class="status-dot"></div>
+        <span>KALI LINUX KERNEL v6.12.0-SIM</span>
+      </div>
+
+      <div class="top-bar-controls">
+        <span>THEME:</span>
+        <button class="ctrl-btn active" onclick="setTheme('green')">GREEN</button>
+        <button class="ctrl-btn" onclick="setTheme('cyan')">CYAN</button>
+        <button class="ctrl-btn" onclick="setTheme('amber')">AMBER</button>
+        <button class="ctrl-btn" onclick="setTheme('red')">RED</button>
+        <button id="btn-audio" class="ctrl-btn" onclick="toggleAudio()">AUDIO: OFF</button>
+      </div>
+
+      <div class="top-bar-controls">
+        <span>SYS: <span id="clock-display">00:00:00</span></span>
+        <span>FPS: <span id="fps-display">60</span></span>
+        <span>UPTIME: <span id="uptime-display">00:00</span></span>
+      </div>
+    </div>
+
+    <!-- Main Workspace Grid -->
+    <div class="main-grid">
+      <!-- Terminal Window -->
+      <div class="terminal-window">
+        <div class="terminal-header">
+          <span>root@kali:~# bash -c "init_kernel.sh"</span>
+          <span>TTY1 // INTERACTIVE SHELL</span>
+        </div>
+
+        <div id="terminal-body" class="terminal-body">
+          <div class="log-line">System ready. Waiting for user authorization...</div>
+        </div>
+
+        <!-- Touch Shortcuts for Mobile & Quick Commands -->
+        <div class="mobile-actions">
+          <span class="action-chip" onclick="executeQuickCmd('help')">HELP</span>
+          <span class="action-chip" onclick="executeQuickCmd('status')">STATUS</span>
+          <span class="action-chip" onclick="executeQuickCmd('profile')">PROFILE</span>
+          <span class="action-chip" onclick="executeQuickCmd('analyze')">ANALYZE</span>
+          <span class="action-chip" onclick="executeQuickCmd('auto')">TOGGLE AUTO</span>
+          <span class="action-chip" onclick="executeQuickCmd('clear')">CLEAR</span>
+        </div>
+
+        <!-- Interactive Command Line Prompt -->
+        <div class="terminal-input-row">
+          <span class="prompt-label">root@kali:~#</span>
+          <input type="text" id="cmd-input" class="cmd-input" placeholder="Type 'help' or command..." autocomplete="off" spellcheck="false">
+        </div>
+      </div>
+
+      <div class="side-panel">
+        <!-- Live System Monitors -->
+        <div class="panel-card">
+          <div class="card-title">
+            <span>SYSTEM MONITORS</span>
+            <span id="auto-status" style="color:var(--primary-bright)">AUTO: ON</span>
+          </div>
+          
+          <div class="metric-row">
+            <span>CPU CORE 0-7</span>
+            <div class="progress-bar-bg"><div id="cpu-bar" class="progress-bar-fill"></div></div>
+            <span id="cpu-val">34%</span>
+          </div>
+
+          <div class="metric-row">
+            <span>RAM ALLOCATED</span>
+            <div class="progress-bar-bg"><div id="ram-bar" class="progress-bar-fill"></div></div>
+            <span id="ram-val">5.8/16G</span>
+          </div>
+
+          <div class="metric-row">
+            <span>GPU COMPUTE</span>
+            <div class="progress-bar-bg"><div id="gpu-bar" class="progress-bar-fill"></div></div>
+            <span id="gpu-val">12%</span>
+          </div>
+
+          <div class="metric-row">
+            <span>CORE TEMP</span>
+            <span id="temp-val" style="color:var(--primary-bright)">48 °C</span>
+          </div>
+
+          <div class="metric-row">
+            <span>ACTIVE THREADS</span>
+            <span id="threads-val">142</span>
+          </div>
+
+          <div class="metric-row">
+            <span>PACKETS IN/OUT</span>
+            <span id="packets-val">10429 / 8920</span>
+          </div>
+
+          <div class="metric-row">
+            <span>LATENCY</span>
+            <span id="latency-val">12 ms</span>
+          </div>
+        </div>
+
+        <!-- Fictional Profile Card -->
+        <div class="panel-card">
+          <div class="card-title">PROFILE DATABASE</div>
+          <div class="profile-info">
+            <span class="profile-label">NAME</span><span class="profile-value">: Alex Morgan</span>
+            <span class="profile-label">POSITION</span><span class="profile-value">: Director</span>
+            <span class="profile-label">EMPLOYEE ID</span><span class="profile-value">: GOV-204812</span>
+            <span class="profile-label">REGION</span><span class="profile-value">: Capital District</span>
+            <span class="profile-label">CLEARANCE</span><span class="profile-value">: LEVEL 5</span>
+            <span class="profile-label">STATUS</span><span class="profile-value" style="color:var(--primary-bright)">: ACTIVE</span>
+          </div>
+        </div>
+
+        <!-- Database & Module Status -->
+        <div class="panel-card">
+          <div class="card-title">DATABASE STATUS</div>
+          <div class="metric-row"><span>CONNECTED</span><span style="color:var(--primary-bright)">[ TRUE ]</span></div>
+          <div class="metric-row"><span>SYNCED</span><span style="color:var(--primary-bright)">[ TRUE ]</span></div>
+          <div class="metric-row"><span>ENCRYPTION</span><span style="color:var(--primary-bright)">[ AES-256 ]</span></div>
+          <div class="metric-row"><span>SYSTEM STATE</span><span style="color:var(--primary-bright)">[ OPTIMAL ]</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Status Disclaimer Bar -->
+    <div class="bottom-bar">
+      <span>SIMULATION MODE — Fictional Data Only</span>
+      <span>SECURITY: DEMO SIMULATION (NO CYBER ACTIONS)</span>
+    </div>
+  </div>
+
+  <!-- Auth Input Overlay Panel -->
+  <div id="auth-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-box">
+      <div class="modal-header">
+        ==============================<br>
+        SYSTEM AUTHORIZATION REQUIRED<br>
+        ==============================
+      </div>
+      <div class="modal-body">
+        Enter Authorization Code / Access Key:<br><br>
+        <input type="text" id="auth-code-input" class="cmd-input" style="border: 1px solid var(--primary); padding: 8px 12px; width: 100%; background: rgba(0,0,0,0.85); text-align: center; border-radius: 4px; color: var(--primary-bright);" placeholder="Enter Token (e.g. AUTH-ROOT-9081)" autocomplete="off">
+      </div>
+      <div class="modal-buttons">
+        <button id="btn-submit-auth" class="modal-btn">[ AUTHORIZE & FETCH DATA ]</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JSON Data Rendering Modal / Viewer -->
+  <div id="json-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-box" style="max-width: 650px; text-align: left;">
+      <div class="modal-header" style="text-align: center;">
+        ==============================<br>
+        FETCHED JSON DATA PAYLOAD<br>
+        ENDPOINT: https://gantuluu.github.io/contoh.json<br>
+        ==============================
+      </div>
+      <div class="modal-body" style="max-height: 380px; overflow-y: auto; background: rgba(0,10,5,0.92); border: 1px solid var(--border-color); padding: 14px; font-family: var(--font-stack); border-radius: 4px;">
+        <pre id="json-rendered-content" style="white-space: pre-wrap; word-break: break-all; color: var(--primary-bright); font-size: 11px; line-height: 1.4;"></pre>
+      </div>
+      <div class="modal-buttons" style="margin-top: 15px;">
+        <button id="btn-close-json" class="modal-btn">[ CLOSE VIEWER ]</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let audioCtx = null;
+    let audioEnabled = false;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    function playBeep(freq = 800, duration = 0.04, type = 'sine') {
+      if (!audioEnabled || !audioCtx) return;
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {}
+    }
+
+    function toggleAudio() {
+      initAudio();
+      audioEnabled = !audioEnabled;
+      const btn = document.getElementById('btn-audio');
+      btn.innerText = `AUDIO: ${audioEnabled ? 'ON' : 'OFF'}`;
+      if (audioEnabled) {
+        btn.classList.add('active');
+        playBeep(1200, 0.1);
+      } else {
+        btn.classList.remove('active');
+      }
+    }
+
+    function setTheme(theme) {
+      document.body.setAttribute('data-theme', theme);
+      document.querySelectorAll('.top-bar-controls .ctrl-btn').forEach(b => {
+        if (b.innerText.toLowerCase() === theme) b.classList.add('active');
+        else if (['green', 'cyan', 'amber', 'red'].includes(b.innerText.toLowerCase())) b.classList.remove('active');
+      });
+      playBeep(900, 0.05);
+    }
+
+    const canvas = document.getElementById('matrix-canvas');
+    const ctx = canvas.getContext('2d');
+
+    let width = canvas.width = window.innerWidth;
+    let height = canvas.height = window.innerHeight;
+
+    window.addEventListener('resize', () => {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    });
+
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&*+-/<>~';
+    const fontSize = 14;
+    const columns = Math.floor(width / fontSize);
+    const drops = new Array(columns).fill(1);
+
+    function drawMatrix() {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+      ctx.fillRect(0, 0, width, height);
+
+      const style = getComputedStyle(document.body);
+      ctx.fillStyle = style.getPropertyValue('--primary').trim() || '#00ff66';
+      ctx.font = fontSize + 'px monospace';
+
+      for (let i = 0; i < drops.length; i++) {
+        const text = characters.charAt(Math.floor(Math.random() * characters.length));
+        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+        if (drops[i] * fontSize > height && Math.random() > 0.975) {
+          drops[i] = 0;
+        }
+        drops[i]++;
+      }
+    }
+
+    function getRandomHex(len = 8) {
+      return Array.from({ length: len }, () => Math.floor(Math.random() * 16).toString(16)).join('').toUpperCase();
+    }
+
+    function getRandomBinary(len = 16) {
+      return Array.from({ length: len }, () => Math.floor(Math.random() * 2)).join('');
+    }
+
+    function getRandomIP() {
+      const ranges = ['192.0.2', '198.51.100', '203.0.113'];
+      const base = ranges[Math.floor(Math.random() * ranges.length)];
+      return `${base}.${Math.floor(Math.random() * 254 + 1)}`;
+    }
+
+    function getRandomMAC() {
+      return Array.from({ length: 6 }, () => getRandomHex(2)).join(':');
+    }
+
+    const terminalBody = document.getElementById('terminal-body');
+    const maxLogs = 120;
+
+    function appendLog(htmlContent, className = 'log-info') {
+      const line = document.createElement('div');
+      line.className = `log-line ${className}`;
+      line.innerHTML = htmlContent;
+      terminalBody.appendChild(line);
+
+      while (terminalBody.childNodes.length > maxLogs) {
+        terminalBody.removeChild(terminalBody.firstChild);
+      }
+
+      terminalBody.scrollTop = terminalBody.scrollHeight;
+      playBeep(400 + Math.random() * 400, 0.02, 'square');
+    }
+
+    const phase1Logs = [
+      "Initializing Kernel...",
+      "Loading Modules...",
+      "Checking Memory...",
+      "Synchronizing Services...",
+      "Verifying Session...",
+      "Opening Secure Tunnel...",
+      "Decrypting Metadata...",
+      "Parsing Packets...",
+      "Scanning Virtual Network...",
+      "Loading Runtime...",
+      "Allocating Memory...",
+      "Generating Session Key...",
+      "Establishing Encrypted Channel...",
+      "Handshake Complete...",
+      "Kernel Ready...",
+      "Mounting Virtual Filesystem...",
+      "Resolving Dependencies...",
+      "Compiling Runtime...",
+      "Launching Processes...",
+      "Task Completed..."
+    ];
+
+    const proceduralVerbs = [
+      "Loading", "Checking", "Verifying", "Building", "Encrypting", 
+      "Decrypting", "Reading", "Parsing", "Resolving", "Indexing", 
+      "Caching", "Hashing", "Generating", "Compiling", "Monitoring", "Synchronizing"
+    ];
+
+    const proceduralTargets = [
+      "virtual memory block", "secure cluster index", "cryptographic salt", 
+      "socket protocol layer", "network descriptor", "thread pool worker", 
+      "filesystem mirror", "hardware checksum", "data buffer payload"
+    ];
+
+    function generateRandomLog() {
+      const verb = proceduralVerbs[Math.floor(Math.random() * proceduralVerbs.length)];
+      const target = proceduralTargets[Math.floor(Math.random() * proceduralTargets.length)];
+      const type = Math.random();
+
+      if (type < 0.3) {
+        return `root@kali:~# ${verb} ${target} [0x${getRandomHex(8)}] ... <span style="color:var(--primary-bright)">OK</span>`;
+      } else if (type < 0.6) {
+        return `[SYSTEM] BINARY_STREAM :: ${getRandomBinary(24)} | IP: ${getRandomIP()} | MAC: ${getRandomMAC()}`;
+      } else if (type < 0.8) {
+        return `[SECURITY] HASH_VERIFY :: SHA256:${getRandomHex(16)}... STATUS: VERIFIED`;
+      } else {
+        return `[KERNEL] PID:${Math.floor(Math.random() * 9000 + 1000)} THREAD:${Math.floor(Math.random() * 64)} PORT:${Math.floor(Math.random() * 60000 + 1024)} :: ${verb}...`;
+      }
+    }
+
+    let isRunning = false;
+    let autoPilot = true;
+    let phase = 0; // 0: Stopped, 1: Fast Boot (~5s), 2: Dashboard Mode
+
+    const modal = document.getElementById('modal');
+    const btnYes = document.getElementById('btn-yes');
+    const btnNo = document.getElementById('btn-no');
+
+    btnNo.addEventListener('click', () => {
+      modal.style.display = 'none';
+      appendLog("Simulation aborted by user.", "log-warn");
+    });
+
+    btnYes.addEventListener('click', () => {
+      initAudio();
+      modal.style.display = 'none';
+      startSimulation();
+    });
+
+    function startSimulation() {
+      isRunning = true;
+      phase = 1;
+      appendLog("--------------------------------------------------", "log-highlight");
+      appendLog("STARTING SIMULATION BOOT SEQUENCE (10 SECONDS)...", "log-highlight");
+      appendLog("--------------------------------------------------", "log-highlight");
+
+      const startTime = Date.now();
+      const bootInterval = setInterval(() => {
+        const elapsed = Date.now() - startTime;
+
+        if (elapsed < 10000) { // Updated to 10 seconds phase
+          for (let i = 0; i < 3; i++) {
+            const staticMsg = phase1Logs[Math.floor(Math.random() * phase1Logs.length)];
+            appendLog(`[BOOT] ${staticMsg} HEX:0x${getRandomHex(6)} IP:${getRandomIP()}`);
+          }
+        } else {
+          clearInterval(bootInterval);
+          promptAuthorizationInput();
+        }
+      }, 80);
+    }
+
+    function promptAuthorizationInput() {
+      appendLog("[SECURITY] Boot sequence completed (10s). Awaiting authorization token...", "log-warn");
+      const authModal = document.getElementById('auth-modal');
+      authModal.style.display = 'flex';
+      const inputEl = document.getElementById('auth-code-input');
+      inputEl.value = '';
+      inputEl.focus();
+    }
+
+    document.getElementById('btn-submit-auth').addEventListener('click', submitAuthAndFetch);
+    document.getElementById('auth-code-input').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') submitAuthAndFetch();
+    });
+
+    function submitAuthAndFetch() {
+      const inputVal = document.getElementById('auth-code-input').value.trim() || "AUTH-ROOT-9081";
+      document.getElementById('auth-modal').style.display = 'none';
+      
+      appendLog(`[AUTH] Submitted Token: "${inputVal}" - Validating...`, "log-highlight");
+      showAuthorizationBanner();
+      
+      setTimeout(() => {
+        fetchEndpointData();
+      }, 1200);
+    }
+
+    async function fetchEndpointData() {
+      const endpoint = 'https://gantuluu.github.io/contoh.json';
+      appendLog(`[NETWORK] Initiating GET request -> ${endpoint}`, 'log-warn');
+      
+      try {
+        const response = await fetch(endpoint);
+        if (!response.ok) throw new Error(`HTTP Error status: ${response.status}`);
+        const data = await response.json();
+        
+        appendLog(`[NETWORK] 200 OK <- JSON payload successfully retrieved from ${endpoint}`, 'log-highlight');
+        renderJsonPayload(data);
+      } catch (err) {
+        appendLog(`[NETWORK WARN] Direct endpoint fetch failed (${err.message}). Generating fallback JSON payload...`, 'log-warn');
+        // Fallback sample JSON structure in case of network disconnect/CORS restriction
+        const fallbackData = {
+          "status": "SUCCESS",
+          "code": 200,
+          "source": "https://gantuluu.github.io/contoh.json",
+          "message": "Data retrieved and parsed successfully",
+          "payload": {
+            "title": "Contoh Data Simulation",
+            "author": "Kali Simulator",
+            "version": "v3.0.0",
+            "items": [
+              {"id": 1, "name": "Security Module Alpha", "active": true},
+              {"id": 2, "name": "Telemetry Node Beta", "active": false}
+            ]
+          }
+        };
+        renderJsonPayload(fallbackData);
+      }
+    }
+
+    function renderJsonPayload(jsonObj) {
+      const jsonStr = JSON.stringify(jsonObj, null, 2);
+      appendLog(`[DATA RENDER] Displaying raw JSON payload in viewer dialog...`, 'log-highlight');
+      
+      const jsonViewer = document.getElementById('json-rendered-content');
+      jsonViewer.innerHTML = highlightSyntax(jsonStr);
+      
+      document.getElementById('json-modal').style.display = 'flex';
+    }
+
+    function highlightSyntax(json) {
+      json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+        let cls = 'color: #00ff66;'; // green numbers
+        if (/^"/.test(match)) {
+          if (/:$/.test(match)) {
+            cls = 'color: #00f0ff; font-weight: bold;'; // cyan keys
+          } else {
+            cls = 'color: #ffaa00;'; // amber strings
+          }
+        } else if (/true|false/.test(match)) {
+          cls = 'color: #ff3344;'; // red booleans
+        } else if (/null/.test(match)) {
+          cls = 'color: #888;';
+        }
+        return `<span style="${cls}">${match}</span>`;
+      });
+    }
+
+    document.getElementById('btn-close-json').addEventListener('click', () => {
+      document.getElementById('json-modal').style.display = 'none';
+      appendLog("[DATA VIEWER] Viewer closed. Terminal returned to main interactive loop.", "log-info");
+    });
+
+    function showAuthorizationBanner() {
+      const authHTML = `
+        ==================================================<br>
+        <strong>AUTHORIZATION SUCCESS</strong><br>
+        ACCESS LEVEL: ROOT<br>
+        TOKEN VERIFIED :: SESSION ESTABLISHED<br>
+        ==================================================
+      `;
+      appendLog(authHTML, "log-auth");
+      playBeep(1200, 0.2, 'sine');
+
+      setTimeout(() => {
+        phase = 2;
+        appendLog("Type 'help' to list interactive terminal simulation commands.", "log-highlight");
+      }, 1000);
+    }
+
+    const cmdInput = document.getElementById('cmd-input');
+
+    cmdInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const command = cmdInput.value.trim();
+        if (command) {
+          processCommand(command);
+          cmdInput.value = '';
+        }
+      }
+    });
+
+    function executeQuickCmd(cmd) {
+      processCommand(cmd);
+    }
+
+    function processCommand(cmdStr) {
+      const parts = cmdStr.toLowerCase().split(' ');
+      const mainCmd = parts[0];
+
+      appendLog(`root@kali:~# ${cmdStr}`, 'log-highlight');
+
+      switch (mainCmd) {
+        case 'help':
+          appendLog("Available Simulation Commands:", "log-info");
+          appendLog("  help       - Show available commands list", "log-info");
+          appendLog("  status     - Display current kernel diagnostic report", "log-info");
+          appendLog("  profile    - Display fictional personnel profile record", "log-info");
+          appendLog("  analyze    - Run simulated diagnostic system sweep", "log-info");
+          appendLog("  auto       - Toggle continuous procedural auto-pilot log stream", "log-info");
+          appendLog("  clear      - Clear the terminal screen log history", "log-info");
+          break;
+
+        case 'status':
+          appendLog("[DIAGNOSTIC] CPU: Operational | RAM: 5.8GB / 16GB | Temp: Normal", "log-info");
+          appendLog("[DIAGNOSTIC] Encryption: AES-256-GCM | Latency: 12ms", "log-info");
+          break;
+
+        case 'profile':
+          appendLog("[DATABASE] RECORD FOUND :: ALEX MORGAN | DIRECTOR | LEVEL 5 CLEARANCE", "log-highlight");
+          break;
+
+        case 'analyze':
+          appendLog("Running simulated security diagnostic...", "log-warn");
+          setTimeout(() => appendLog("[RESULT] All simulated virtual clusters active & optimal.", "log-info"), 600);
+          break;
+
+        case 'auto':
+          autoPilot = !autoPilot;
+          document.getElementById('auto-status').innerText = `AUTO: ${autoPilot ? 'ON' : 'OFF'}`;
+          appendLog(`Auto-pilot procedural stream: ${autoPilot ? 'ENABLED' : 'DISABLED'}`, "log-warn");
+          break;
+
+        case 'clear':
+          terminalBody.innerHTML = '';
+          break;
+
+        default:
+          appendLog(`bash: ${mainCmd}: command not found (simulated shell)`, "log-alert");
+          break;
+      }
+    }
+
+    let packetIn = 10429;
+    let packetOut = 8920;
+    let startTime = Date.now();
+
+    function updateMonitors() {
+      if (!isRunning) return;
+
+      const cpuVal = Math.floor(20 + Math.random() * 55);
+      const ramVal = (5.2 + Math.random() * 1.5).toFixed(1);
+      const gpuVal = Math.floor(10 + Math.random() * 30);
+      const tempVal = Math.floor(45 + Math.random() * 8);
+      const latencyVal = Math.floor(8 + Math.random() * 12);
+      const threadsVal = Math.floor(135 + Math.random() * 20);
+
+      packetIn += Math.floor(Math.random() * 15);
+      packetOut += Math.floor(Math.random() * 12);
+
+      document.getElementById('cpu-bar').style.width = `${cpuVal}%`;
+      document.getElementById('cpu-val').innerText = `${cpuVal}%`;
+
+      document.getElementById('ram-bar').style.width = `${(ramVal / 16) * 100}%`;
+      document.getElementById('ram-val').innerText = `${ramVal}/16G`;
+
+      document.getElementById('gpu-bar').style.width = `${gpuVal}%`;
+      document.getElementById('gpu-val').innerText = `${gpuVal}%`;
+
+      document.getElementById('temp-val').innerText = `${tempVal} °C`;
+      document.getElementById('threads-val').innerText = threadsVal;
+      document.getElementById('latency-val').innerText = `${latencyVal} ms`;
+      document.getElementById('packets-val').innerText = `${packetIn} / ${packetOut}`;
+
+      // Uptime timer
+      const elapsedSec = Math.floor((Date.now() - startTime) / 1000);
+      const mins = String(Math.floor(elapsedSec / 60)).padStart(2, '0');
+      const secs = String(elapsedSec % 60).padStart(2, '0');
+      document.getElementById('uptime-display').innerText = `${mins}:${secs}`;
+    }
+
+    setInterval(updateMonitors, 1000);
+
+    let lastFrameTime = performance.now();
+    let frameCount = 0;
+    let currentFps = 60;
+
+    function renderLoop(now) {
+      drawMatrix();
+
+      frameCount++;
+      if (now - lastFrameTime >= 1000) {
+        currentFps = frameCount;
+        frameCount = 0;
+        lastFrameTime = now;
+        document.getElementById('fps-display').innerText = currentFps;
+      }
+
+      const d = new Date();
+      const hrs = String(d.getHours()).padStart(2, '0');
+      const mins = String(d.getMinutes()).padStart(2, '0');
+      const secs = String(d.getSeconds()).padStart(2, '0');
+      document.getElementById('clock-display').innerText = `${hrs}:${mins}:${secs}`;
+
+      if (phase === 2 && autoPilot && Math.random() < 0.35) {
+        appendLog(generateRandomLog());
+      }
+
+      requestAnimationFrame(renderLoop);
+    }
+
+    window.onload = function() {
+      requestAnimationFrame(renderLoop);
+    };
+  </script>
+</body>
+</html>
