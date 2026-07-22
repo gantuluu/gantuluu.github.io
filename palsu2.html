@@ -1,0 +1,1377 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>KALI LINUX // SYSTEM TERMINAL & INTELLIGENCE DOSSIER</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --bg-color: #020403;
+      --primary: #00ff66;
+      --primary-dim: #005522;
+      --primary-bright: #66ffa3;
+      --primary-glow: rgba(0, 255, 102, 0.4);
+      --dark-surface: rgba(4, 12, 7, 0.92);
+      --card-bg: rgba(10, 22, 16, 0.85);
+      --border-color: #00441b;
+      --alert-red: #ff3344;
+      --amber: #ffaa00;
+      --cyan: #00f0ff;
+      --font-stack: 'Consolas', 'Fira Code', 'Courier New', monospace;
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    body[data-theme="cyan"] {
+      --primary: #00f0ff;
+      --primary-dim: #004455;
+      --primary-bright: #80f7ff;
+      --primary-glow: rgba(0, 240, 255, 0.4);
+      --border-color: #004d5e;
+      --card-bg: rgba(6, 20, 28, 0.88);
+    }
+
+    body[data-theme="amber"] {
+      --primary: #ffaa00;
+      --primary-dim: #553300;
+      --primary-bright: #ffcc66;
+      --primary-glow: rgba(255, 170, 0, 0.4);
+      --border-color: #5e3f00;
+      --card-bg: rgba(26, 18, 6, 0.88);
+    }
+
+    body[data-theme="red"] {
+      --primary: #ff3344;
+      --primary-dim: #55000a;
+      --primary-bright: #ff8899;
+      --primary-glow: rgba(255, 51, 68, 0.4);
+      --border-color: #5e000e;
+      --card-bg: rgba(28, 8, 10, 0.88);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100vw;
+      height: 100vh;
+      overflow-x: hidden;
+      background-color: var(--bg-color);
+      color: var(--primary);
+      font-family: var(--font-stack);
+      font-size: 13px;
+      line-height: 1.4;
+      transition: color 0.3s ease, background-color 0.3s ease;
+    }
+
+    /* CRT Visual Effect Overlay */
+    .crt-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 999;
+      background: linear-gradient(
+        rgba(18, 16, 16, 0) 50%, 
+        rgba(0, 0, 0, 0.35) 50%
+      ), linear-gradient(
+        90deg,
+        rgba(255, 0, 0, 0.02),
+        rgba(0, 255, 0, 0.01),
+        rgba(0, 0, 255, 0.02)
+      );
+      background-size: 100% 3px, 6px 100%;
+      box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.8);
+      animation: crtFlicker 0.15s infinite;
+    }
+
+    @keyframes crtFlicker {
+      0% { opacity: 0.97; }
+      50% { opacity: 1; }
+      100% { opacity: 0.98; }
+    }
+
+    #matrix-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 1;
+      opacity: 0.18;
+      pointer-events: none;
+    }
+
+    /* Modern Glassmorphic Container */
+    .app-viewport {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      width: 100vw;
+      padding: 8px;
+      gap: 8px;
+    }
+
+    /* Top Bar Styling */
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--dark-surface);
+      border: 1px solid var(--border-color);
+      padding: 8px 14px;
+      border-radius: 6px;
+      box-shadow: 0 0 12px var(--primary-glow);
+      font-weight: bold;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .top-bar-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      letter-spacing: 1.2px;
+      text-shadow: 0 0 8px var(--primary-glow);
+    }
+
+    .status-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background-color: var(--primary);
+      box-shadow: 0 0 10px var(--primary);
+      animation: statusPulse 1.5s infinite alternate;
+    }
+
+    @keyframes statusPulse {
+      0% { opacity: 0.3; }
+      100% { opacity: 1; }
+    }
+
+    .ctrl-btn {
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid var(--border-color);
+      color: var(--primary);
+      padding: 4px 10px;
+      font-family: var(--font-stack);
+      font-size: 11px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .ctrl-btn:hover, .ctrl-btn.active {
+      background: var(--primary);
+      color: #000;
+      box-shadow: 0 0 10px var(--primary-glow);
+      font-weight: bold;
+    }
+
+    /* Terminal Window */
+    .terminal-window {
+      background: rgba(0, 0, 0, 0.92);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.95);
+      flex: 1;
+      min-height: 480px;
+    }
+
+    .terminal-header {
+      background: rgba(0, 30, 10, 0.8);
+      padding: 8px 14px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: var(--primary-bright);
+    }
+
+    .terminal-body {
+      flex: 1;
+      padding: 14px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border-color) transparent;
+    }
+
+    .log-line {
+      word-break: break-all;
+      text-shadow: 0 0 4px var(--primary-glow);
+      line-height: 1.4;
+    }
+
+    .log-info { color: var(--primary); }
+    .log-warn { color: var(--amber); }
+    .log-alert { color: var(--alert-red); }
+    .log-highlight { color: var(--primary-bright); font-weight: bold; }
+    
+    .log-auth {
+      color: var(--primary-bright);
+      background: rgba(0, 255, 102, 0.08);
+      border: 1px solid var(--primary);
+      padding: 12px;
+      margin: 10px 0;
+      text-align: center;
+      box-shadow: 0 0 20px var(--primary-glow);
+      border-radius: 4px;
+    }
+
+    .cmd-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--primary-bright);
+      font-family: var(--font-stack);
+      font-size: 13px;
+      caret-color: var(--primary);
+    }
+
+    /* Modal Overlay */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.92);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+    }
+
+    .modal-box {
+      width: 100%;
+      max-width: 480px;
+      background: #020804;
+      border: 2px solid var(--primary);
+      box-shadow: 0 0 35px var(--primary-glow);
+      padding: 24px;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .modal-btn {
+      background: rgba(0, 25, 10, 0.9);
+      border: 1px solid var(--primary);
+      color: var(--primary);
+      padding: 10px 24px;
+      font-family: var(--font-stack);
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+
+    .modal-btn:hover {
+      background: var(--primary);
+      color: #000000;
+      box-shadow: 0 0 16px var(--primary);
+    }
+
+    /* Fullpage Social Media / Dossier Styling */
+    .social-media-container {
+      font-family: var(--font-sans);
+      display: none;
+      flex-direction: column;
+      gap: 16px;
+      width: 100%;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding-bottom: 40px;
+    }
+
+    .social-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    }
+
+    .tab-btn {
+      padding: 10px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #a0aec0;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .tab-btn:hover, .tab-btn.active {
+      color: var(--primary-bright);
+      border-bottom-color: var(--primary);
+      background: rgba(0, 255, 102, 0.05);
+    }
+
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Custom Scrollbar for smooth experience */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(0,0,0,0.3);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-color);
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--primary);
+    }
+  </style>
+</head>
+<body data-theme="green">
+
+  <div class="crt-overlay"></div>
+  <canvas id="matrix-canvas"></canvas>
+
+  <!-- Startup Dialog Modal -->
+  <div id="modal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="text-lg font-bold text-green-400 mb-2 tracking-wider">
+        ==============================<br>
+        EXECUTE CODE NOW?<br>
+        ==============================
+      </div>
+      <div class="text-sm text-green-300 mb-6 leading-relaxed">
+        Sistem akan menjalankan simulasi boot 10 detik.<br>
+        Setelah 10 detik, permintaan input otorisasi akan muncul untuk mengambil data JSON endpoint.
+      </div>
+      <div class="flex justify-center gap-4">
+        <button id="btn-yes" class="modal-btn">[ YA, JALANKAN ]</button>
+        <button id="btn-no" class="modal-btn">[ BATAL ]</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="app-viewport">
+    <!-- Top Bar Navigation -->
+    <div class="top-bar">
+      <div class="top-bar-title">
+        <div class="status-dot"></div>
+        <span class="text-xs sm:text-sm">KALI LINUX KERNEL v6.12.0-SIM // INTELLIGENCE DOSSIER</span>
+      </div>
+
+      <div class="flex items-center gap-2 flex-wrap">
+        <button id="btn-view-mode" class="ctrl-btn active" onclick="toggleViewMode()">
+          <i class="fa-solid fa-desktop mr-1"></i> VIEW: SOCIAL PROFILE UI
+        </button>
+        <button class="ctrl-btn" onclick="openJsonModal()">
+          <i class="fa-solid fa-code mr-1"></i> RAW JSON
+        </button>
+      </div>
+
+      <div class="flex items-center gap-3 text-xs">
+        <span>THEME:</span>
+        <button class="ctrl-btn" onclick="setTheme('green')">GREEN</button>
+        <button class="ctrl-btn" onclick="setTheme('cyan')">CYAN</button>
+        <button class="ctrl-btn" onclick="setTheme('amber')">AMBER</button>
+        <button class="ctrl-btn" onclick="setTheme('red')">RED</button>
+        <button id="btn-audio" class="ctrl-btn" onclick="toggleAudio()">AUDIO: OFF</button>
+      </div>
+    </div>
+
+    <!-- Terminal Mode View -->
+    <div id="terminal-wrapper" class="terminal-window">
+      <div class="terminal-header">
+        <span>root@kali:~# bash -c "init_kernel.sh --fetch-dossier"</span>
+        <span>TTY1 // INTERACTIVE SHELL SIMULATOR</span>
+      </div>
+
+      <div id="terminal-body" class="terminal-body">
+        <div class="log-line text-green-400">System ready. Klik tombol [YA, JALANKAN] untuk memulai alur simulasi.</div>
+      </div>
+
+      <div class="flex items-center p-2 bg-black border-t border-green-900 gap-2">
+        <span class="text-green-400 font-bold text-xs whitespace-nowrap">root@kali:~#</span>
+        <input type="text" id="cmd-input" class="cmd-input" placeholder="Ketik 'help', 'status', atau perintah..." autocomplete="off" spellcheck="false">
+      </div>
+    </div>
+
+    <!-- FULLPAGE RESPONSIVE SOCIAL MEDIA / INTELLIGENCE PROFILE UI -->
+    <div id="social-profile-wrapper" class="social-media-container">
+      
+      <!-- Profile Header / Banner Card -->
+      <div class="social-card relative">
+        <!-- Cover Banner Image -->
+        <div class="h-48 sm:h-64 bg-gradient-to-r from-emerald-950 via-teal-900 to-slate-900 relative overflow-hidden">
+          <div class="absolute inset-0 bg-[radial-gradient(#00ff66_1px,transparent_1px)] [background-size:16px_16px] opacity-20"></div>
+          
+          <div class="absolute top-4 right-4 flex gap-2">
+            <span id="badge-warning" class="badge-pill bg-red-950/80 text-red-400 border border-red-600">
+              <i class="fa-solid fa-triangle-exclamation"></i> RISIKO: HIGH
+            </span>
+            <span id="badge-status" class="badge-pill bg-emerald-950/80 text-emerald-400 border border-emerald-500">
+              <i class="fa-solid fa-circle-check"></i> STATUS: AKTIF
+            </span>
+          </div>
+
+          <!-- Quick Stats Overlay on Banner -->
+          <div class="absolute bottom-3 right-4 hidden md:flex items-center gap-4 bg-black/60 backdrop-blur-md px-4 py-2 rounded-lg border border-green-900 text-xs">
+            <div><span class="text-gray-400 block text-[10px]">LHKPN NET WORTH</span><span id="banner-lhkpn" class="text-amber-400 font-bold">Rp 0</span></div>
+            <div class="w-px h-6 bg-green-900"></div>
+            <div><span class="text-gray-400 block text-[10px]">SKOR INTEGRITAS</span><span id="banner-integritas" class="text-green-400 font-bold">0 / 100</span></div>
+            <div class="w-px h-6 bg-green-900"></div>
+            <div><span class="text-gray-400 block text-[10px]">KASUS VETTING</span><span id="banner-kasus" class="text-red-400 font-bold">0 Perkara</span></div>
+          </div>
+        </div>
+
+        <!-- Profile Avatar & Primary Info -->
+        <div class="px-6 pb-6 pt-0 relative flex flex-col md:flex-row items-start md:items-end justify-between gap-4 -mt-16 sm:-mt-20">
+          <div class="flex flex-col sm:flex-row items-start sm:items-end gap-5">
+            <div class="relative group">
+              <img id="prof-avatar" src="https://placehold.co/160x160/0a1a10/00ff66?text=FOTO" alt="Profile" class="w-28 h-28 sm:w-36 sm:h-36 rounded-full border-4 border-slate-950 object-cover shadow-2xl bg-slate-900">
+              <div class="absolute bottom-1 right-1 w-6 h-6 bg-emerald-500 border-2 border-slate-950 rounded-full flex items-center justify-center text-black text-xs font-bold" title="Verified Account">
+                <i class="fa-solid fa-check"></i>
+              </div>
+            </div>
+
+            <div class="mb-2">
+              <div class="flex items-center gap-2 flex-wrap">
+                <h1 id="sm-nama-lengkap" class="text-2xl sm:text-3xl font-extrabold text-white tracking-wide">
+                  Loading Profil...
+                </h1>
+                <span id="sm-eselon-badge" class="px-2 py-0.5 rounded text-xs font-bold bg-green-900/60 border border-green-500 text-green-300">
+                  ESELON
+                </span>
+              </div>
+              <p id="sm-jabatan-primary" class="text-emerald-400 font-semibold text-sm sm:text-base mt-1">
+                -
+              </p>
+              <p id="sm-instansi-primary" class="text-gray-400 text-xs sm:text-sm flex items-center gap-2 mt-0.5">
+                <i class="fa-solid fa-building text-emerald-500"></i> <span id="sm-instansi-text">-</span>
+                <span class="text-gray-600">•</span>
+                <i class="fa-solid fa-id-card text-emerald-500"></i> NIP: <span id="sm-nip-text">-</span>
+              </p>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex items-center gap-2 w-full md:w-auto">
+            <button onclick="openJsonModal()" class="flex-1 md:flex-none px-4 py-2 bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 border border-emerald-500 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition">
+              <i class="fa-solid fa-code"></i> RAW JSON
+            </button>
+            <button onclick="toggleViewMode()" class="flex-1 md:flex-none px-4 py-2 bg-green-500 hover:bg-green-400 text-black font-bold rounded-lg text-xs flex items-center justify-center gap-2 transition shadow-lg shadow-green-500/20">
+              <i class="fa-solid fa-terminal"></i> TERMINAL
+            </button>
+          </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="flex border-t border-green-900/60 overflow-x-auto px-4 bg-black/40">
+          <button class="tab-btn active" onclick="switchTab('overview')"><i class="fa-solid fa-chart-pie mr-1.5"></i> Ringkasan Utu</button>
+          <button class="tab-btn" onclick="switchTab('jabatan')"><i class="fa-solid fa-briefcase mr-1.5"></i> Jabatan & Karir</button>
+          <button class="tab-btn" onclick="switchTab('hukum')"><i class="fa-solid fa-gavel mr-1.5"></i> Catatan Hukum & Kasus</button>
+          <button class="tab-btn" onclick="switchTab('lhkpn')"><i class="fa-solid fa-sack-dollar mr-1.5"></i> LHKPN & Harta</button>
+          <button class="tab-btn" onclick="switchTab('audit')"><i class="fa-solid fa-file-shield mr-1.5"></i> Audit & Integritas</button>
+          <button class="tab-btn" onclick="switchTab('dokumen')"><i class="fa-solid fa-folder-open mr-1.5"></i> Dokumen & Medsos</button>
+        </div>
+      </div>
+
+      <!-- MAIN CONTENT GRID (Social Feed Style) -->
+      <div class="grid grid-columns-1 lg:grid-cols-12 gap-6">
+
+        <!-- Left Sidebar Column (Personal Info & Quick Stats) -->
+        <div class="lg:col-span-4 flex flex-col gap-6">
+          
+          <!-- Personal Bio Card -->
+          <div class="social-card p-5">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-400 border-b border-green-900/60 pb-3 mb-4 flex justify-between items-center">
+              <span><i class="fa-solid fa-user-shield mr-2"></i> BIODATA PERSONEL</span>
+              <span id="sm-status-pegawai" class="text-[10px] text-gray-400 font-mono">PNS</span>
+            </h3>
+
+            <div class="space-y-3 text-xs">
+              <div class="flex justify-between py-1 border-b border-green-950">
+                <span class="text-gray-400">NIK</span>
+                <span id="sm-nik" class="text-gray-200 font-mono font-semibold">-</span>
+              </div>
+              <div class="flex justify-between py-1 border-b border-green-950">
+                <span class="text-gray-400">TTL</span>
+                <span id="sm-ttl" class="text-gray-200 font-semibold">-</span>
+              </div>
+              <div class="flex justify-between py-1 border-b border-green-950">
+                <span class="text-gray-400">Jenis Kelamin</span>
+                <span id="sm-jk" class="text-gray-200">-</span>
+              </div>
+              <div class="flex justify-between py-1 border-b border-green-950">
+                <span class="text-gray-400">Agama / WNI</span>
+                <span id="sm-agama" class="text-gray-200">-</span>
+              </div>
+              <div class="flex justify-between py-1 border-b border-green-950">
+                <span class="text-gray-400">Pangkat / Golongan</span>
+                <span id="sm-pangkat" class="text-emerald-300 font-bold">-</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Contact & Agency Info -->
+          <div class="social-card p-5">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-400 border-b border-green-900/60 pb-3 mb-4">
+              <i class="fa-solid fa-address-book mr-2"></i> KONTAK KANTOR
+            </h3>
+            <div class="space-y-3 text-xs">
+              <div class="flex items-start gap-3">
+                <i class="fa-solid fa-envelope text-emerald-500 mt-0.5"></i>
+                <div class="break-all">
+                  <span class="text-gray-400 block text-[10px]">Email Resmi</span>
+                  <a id="sm-email" href="#" class="text-emerald-300 hover:underline">-</a>
+                </div>
+              </div>
+              <div class="flex items-start gap-3">
+                <i class="fa-solid fa-phone text-emerald-500 mt-0.5"></i>
+                <div>
+                  <span class="text-gray-400 block text-[10px]">Telepon Kantor</span>
+                  <span id="sm-telp" class="text-gray-200">-</span>
+                </div>
+              </div>
+              <div class="flex items-start gap-3">
+                <i class="fa-solid fa-location-dot text-emerald-500 mt-0.5"></i>
+                <div>
+                  <span class="text-gray-400 block text-[10px]">Alamat Kantor</span>
+                  <span id="sm-alamat" class="text-gray-200 leading-relaxed">-</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Political & Integrity Widget -->
+          <div class="social-card p-5">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-400 border-b border-green-900/60 pb-3 mb-4">
+              <i class="fa-solid fa-flag mr-2"></i> PARTAI POLITIK & ORGANISASI
+            </h3>
+            <div id="sm-parpol-card" class="bg-black/40 p-3 rounded-lg border border-green-950 text-xs mb-3">
+              <div class="flex justify-between items-center mb-1">
+                <span class="text-gray-400">Partai:</span>
+                <span id="sm-parpol-nama" class="text-emerald-300 font-bold">-</span>
+              </div>
+              <div class="flex justify-between items-center text-[11px]">
+                <span class="text-gray-500">Jabatan:</span>
+                <span id="sm-parpol-jabatan" class="text-gray-300">-</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Right Main Feed Column -->
+        <div class="lg:col-span-8 space-y-6">
+
+          <!-- TAB 1: OVERVIEW -->
+          <div id="tab-overview" class="tab-content space-y-6">
+            
+            <!-- Summary Gauge Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div class="social-card p-4 border-l-4 border-l-emerald-500">
+                <span class="text-gray-400 text-xs block mb-1">SKOR INTEGRITAS</span>
+                <div class="flex items-baseline gap-2">
+                  <span id="card-skor-integritas" class="text-3xl font-extrabold text-emerald-400">0</span>
+                  <span class="text-gray-500 text-xs">/ 100</span>
+                </div>
+                <span id="card-level-integritas" class="text-[11px] font-semibold text-emerald-300 block mt-1">STATUS: NORMAL</span>
+              </div>
+
+              <div class="social-card p-4 border-l-4 border-l-amber-500">
+                <span class="text-gray-400 text-xs block mb-1">KEKAYAAN BERSIH (LHKPN)</span>
+                <div id="card-lhkpn-total" class="text-lg font-bold text-amber-400 truncate">Rp 0</div>
+                <span id="card-lhkpn-verifikasi" class="text-[11px] text-gray-400 block mt-1">TERVERIFIKASI</span>
+              </div>
+
+              <div class="social-card p-4 border-l-4 border-l-red-500">
+                <span class="text-gray-400 text-xs block mb-1">TINGKAT RISIKO HUKUM</span>
+                <div id="card-risiko-hukum" class="text-xl font-extrabold text-red-400 uppercase">LOW</div>
+                <span id="card-jumlah-kasus" class="text-[11px] text-gray-400 block mt-1">0 Laporan Hukum</span>
+              </div>
+            </div>
+
+            <!-- Main TUGAS DAN FUNGSI Post Card -->
+            <div class="social-card p-5">
+              <div class="flex items-center gap-3 border-b border-green-900/60 pb-3 mb-4">
+                <div class="w-8 h-8 rounded-full bg-emerald-950 flex items-center justify-center text-emerald-400 font-bold border border-emerald-500">
+                  <i class="fa-solid fa-list-check"></i>
+                </div>
+                <div>
+                  <h3 class="text-sm font-bold text-gray-100">TUGAS DAN FUNGSI JABATAN</h3>
+                  <p class="text-[11px] text-gray-400">Direktorat & Unit Kerja Terkait</p>
+                </div>
+              </div>
+
+              <ul id="sm-tugas-list" class="space-y-2 text-xs text-gray-300 leading-relaxed list-disc list-inside">
+                <li>Memuat tugas dan fungsi...</li>
+              </ul>
+            </div>
+
+            <!-- CATATAN INTEGRITAS & WARNING -->
+            <div class="social-card p-5">
+              <h3 class="text-xs font-bold uppercase tracking-wider text-amber-400 mb-3 flex items-center gap-2">
+                <i class="fa-solid fa-triangle-exclamation"></i> CATATAN INTEGRITAS & ANALISIS VETTING
+              </h3>
+              <p id="sm-integritas-catatan" class="text-xs text-gray-300 leading-relaxed bg-black/40 p-4 rounded-lg border border-green-950">
+                Tidak ada catatan khusus integritas.
+              </p>
+            </div>
+
+          </div>
+
+          <!-- TAB 2: JABATAN & KARIR -->
+          <div id="tab-jabatan" class="tab-content space-y-6 hidden">
+            <!-- Jabatan Saat Ini Detail Card -->
+            <div class="social-card p-5">
+              <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-400 border-b border-green-900/60 pb-3 mb-4">
+                JABATAN DAN UNIT KERJA SAAT INI
+              </h3>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                <div><span class="text-gray-400 block">Nama Jabatan:</span><span id="det-jabatan" class="font-bold text-white">-</span></div>
+                <div><span class="text-gray-400 block">Instansi:</span><span id="det-instansi" class="font-bold text-white">-</span></div>
+                <div><span class="text-gray-400 block">Unit Kerja:</span><span id="det-unit" class="text-gray-200">-</span></div>
+                <div><span class="text-gray-400 block">Eselon / Masa Jabatan:</span><span id="det-eselon" class="text-emerald-300 font-semibold">-</span></div>
+                <div><span class="text-gray-400 block">Atasan Langsung:</span><span id="det-atasan" class="text-gray-200">-</span></div>
+                <div><span class="text-gray-400 block">Lokasi Kerja:</span><span id="det-lokasi" class="text-gray-200">-</span></div>
+              </div>
+            </div>
+
+            <!-- Career Timeline -->
+            <div class="social-card p-5">
+              <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-400 border-b border-green-900/60 pb-3 mb-4">
+                RIWAYAT JABATAN & KARIR
+              </h3>
+              <div id="sm-riwayat-jabatan-container" class="space-y-4 relative border-l-2 border-green-900 ml-3 pl-4">
+                <!-- Timeline items -->
+              </div>
+            </div>
+
+            <!-- Education Cards -->
+            <div class="social-card p-5">
+              <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-400 border-b border-green-900/60 pb-3 mb-4">
+                RIWAYAT PENDIDIKAN FORMAL
+              </h3>
+              <div id="sm-pendidikan-container" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <!-- Education items -->
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 3: CATATAN HUKUM & KASUS -->
+          <div id="tab-hukum" class="tab-content space-y-6 hidden">
+            <!-- Legal Summary Grid -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+              <div class="social-card p-3"><span class="text-[10px] text-gray-400 block">PENYELIDIKAN</span><span id="cnt-penyelidikan" class="text-xl font-bold text-amber-400">0</span></div>
+              <div class="social-card p-3"><span class="text-[10px] text-gray-400 block">PENYIDIKAN</span><span id="cnt-penyidikan" class="text-xl font-bold text-amber-500">0</span></div>
+              <div class="social-card p-3"><span class="text-[10px] text-gray-400 block">PENUNTUTAN</span><span id="cnt-penuntut" class="text-xl font-bold text-red-400">0</span></div>
+              <div class="social-card p-3"><span class="text-[10px] text-gray-400 block">PUTUSAN BERSALAH</span><span id="cnt-putusan" class="text-xl font-bold text-red-600">0</span></div>
+            </div>
+
+            <!-- Detailed Case Feed -->
+            <div class="social-card p-5">
+              <h3 class="text-xs font-bold uppercase tracking-wider text-red-400 border-b border-green-900/60 pb-3 mb-4 flex justify-between items-center">
+                <span><i class="fa-solid fa-gavel mr-2"></i> DAFTAR PERKARA & KASUS HUKUM</span>
+                <span id="cnt-total-kerugian" class="text-xs font-mono text-amber-400">Kerugian Negara: Rp 0</span>
+              </h3>
+
+              <div id="sm-kasus-container" class="space-y-4">
+                <!-- Cases List -->
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 4: LHKPN & KEKAYAAN -->
+          <div id="tab-lhkpn" class="tab-content space-y-6 hidden">
+            <div class="social-card p-5">
+              <h3 class="text-xs font-bold uppercase tracking-wider text-amber-400 border-b border-green-900/60 pb-3 mb-4">
+                RINCIAN HARTA KEKAYAAN (LHKPN)
+              </h3>
+              
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs mb-6">
+                <div class="bg-black/40 p-3 rounded border border-green-950">
+                  <span class="text-gray-400 block">Aset Tanah & Bangunan</span>
+                  <span id="lhkpn-tanah" class="text-emerald-400 font-bold text-sm">Rp 0</span>
+                </div>
+                <div class="bg-black/40 p-3 rounded border border-green-950">
+                  <span class="text-gray-400 block">Aset Kendaraan & Alat Transportasi</span>
+                  <span id="lhkpn-kendaraan" class="text-emerald-400 font-bold text-sm">Rp 0</span>
+                </div>
+                <div class="bg-black/40 p-3 rounded border border-green-950">
+                  <span class="text-gray-400 block">Kas & Setara Kas</span>
+                  <span id="lhkpn-kas" class="text-emerald-400 font-bold text-sm">Rp 0</span>
+                </div>
+                <div class="bg-black/40 p-3 rounded border border-green-950">
+                  <span class="text-gray-400 block">Harta Lainnya & Utang</span>
+                  <span id="lhkpn-utang" class="text-red-400 font-bold text-sm">Rp 0</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 5: AUDIT & INTEGRITAS -->
+          <div id="tab-audit" class="tab-content space-y-6 hidden">
+            <div class="social-card p-5">
+              <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-400 border-b border-green-900/60 pb-3 mb-4">
+                RIWAYAT AUDIT BPK & AUDIT INTERNAL
+              </h3>
+              <div id="sm-audit-container" class="space-y-3 text-xs">
+                <!-- Audit list -->
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 6: DOKUMEN & MEDSOS -->
+          <div id="tab-dokumen" class="tab-content space-y-6 hidden">
+            <div class="social-card p-5">
+              <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-400 border-b border-green-900/60 pb-3 mb-4">
+                DOKUMEN RESMI TERLAMPIR
+              </h3>
+              <div id="sm-dokumen-links" class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <!-- Document Links -->
+              </div>
+            </div>
+
+            <div class="social-card p-5">
+              <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-400 border-b border-green-900/60 pb-3 mb-4">
+                JEJAK MEDIA SOSIAL
+              </h3>
+              <div id="sm-medsos-links" class="flex gap-4 flex-wrap text-sm">
+                <!-- Medsos links -->
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Authorization Input Modal -->
+  <div id="auth-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-box">
+      <div class="text-sm font-bold text-amber-400 mb-2 tracking-wider">
+        ==============================<br>
+        SYSTEM AUTHORIZATION REQUIRED<br>
+        BOOT SIMULATION COMPLETE (10s)<br>
+        ==============================
+      </div>
+      <div class="text-xs text-green-300 mb-4 leading-relaxed">
+        Masukkan Kode Otorisasi untuk mengeksekusi request GET ke endpoint:<br>
+        <span class="text-cyan-300 font-mono text-[11px] block mt-1">GET https://gantuluu.github.io/contoh.json</span>
+      </div>
+      <input type="text" id="auth-code-input" class="cmd-input w-full border border-green-500 bg-black/90 p-2 text-center rounded text-emerald-300 mb-4 font-mono font-bold" placeholder="AUTH-ROOT-9081" value="AUTH-ROOT-9081">
+      <div class="flex justify-center">
+        <button id="btn-submit-auth" onclick="submitAuthAndFetch()" class="modal-btn">[ AUTHORIZE & FETCH DATA ]</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JSON Payload Viewer Modal -->
+  <div id="json-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-box max-w-2xl text-left">
+      <div class="text-xs font-bold text-green-400 text-center mb-3">
+        ==============================<br>
+        RAW FETCHED JSON PAYLOAD<br>
+        ==============================
+      </div>
+      <div class="max-h-96 overflow-y-auto bg-black/90 border border-green-900 p-4 rounded font-mono text-[11px]">
+        <pre id="json-rendered-content" class="text-emerald-300 whitespace-pre-wrap break-all"></pre>
+      </div>
+      <div class="mt-4 flex justify-center">
+        <button onclick="closeJsonModal()" class="modal-btn">[ TUTUP VIEWER ]</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let audioCtx = null;
+    let audioEnabled = false;
+    let currentPayloadData = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    function playBeep(freq = 800, duration = 0.04, type = 'sine') {
+      if (!audioEnabled || !audioCtx) return;
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {}
+    }
+
+    function toggleAudio() {
+      initAudio();
+      audioEnabled = !audioEnabled;
+      const btn = document.getElementById('btn-audio');
+      btn.innerText = `AUDIO: ${audioEnabled ? 'ON' : 'OFF'}`;
+      if (audioEnabled) {
+        btn.classList.add('active');
+        playBeep(1200, 0.1);
+      } else {
+        btn.classList.remove('active');
+      }
+    }
+
+    function setTheme(theme) {
+      document.body.setAttribute('data-theme', theme);
+      playBeep(900, 0.05);
+    }
+
+    /* Matrix Rain Animation Background */
+    const canvas = document.getElementById('matrix-canvas');
+    const ctx = canvas.getContext('2d');
+    let width = canvas.width = window.innerWidth;
+    let height = canvas.height = window.innerHeight;
+
+    window.addEventListener('resize', () => {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    });
+
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&*+-/<>~';
+    const fontSize = 14;
+    const columns = Math.floor(width / fontSize);
+    const drops = new Array(columns).fill(1);
+
+    function drawMatrix() {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+      ctx.fillRect(0, 0, width, height);
+
+      const style = getComputedStyle(document.body);
+      ctx.fillStyle = style.getPropertyValue('--primary').trim() || '#00ff66';
+      ctx.font = fontSize + 'px monospace';
+
+      for (let i = 0; i < drops.length; i++) {
+        const text = characters.charAt(Math.floor(Math.random() * characters.length));
+        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+        if (drops[i] * fontSize > height && Math.random() > 0.975) {
+          drops[i] = 0;
+        }
+        drops[i]++;
+      }
+    }
+
+    /* Terminal Helper Log Functions */
+    const terminalBody = document.getElementById('terminal-body');
+
+    function appendLog(htmlContent, className = 'log-info') {
+      const line = document.createElement('div');
+      line.className = `log-line ${className}`;
+      line.innerHTML = htmlContent;
+      terminalBody.appendChild(line);
+      terminalBody.scrollTop = terminalBody.scrollHeight;
+      playBeep(300 + Math.random() * 400, 0.02, 'square');
+    }
+
+    let isRunning = false;
+    let bootTimer = null;
+
+    document.getElementById('btn-yes').addEventListener('click', () => {
+      initAudio();
+      document.getElementById('modal').style.display = 'none';
+      start10sBootSequence();
+    });
+
+    document.getElementById('btn-no').addEventListener('click', () => {
+      document.getElementById('modal').style.display = 'none';
+      appendLog("Simulasi dibatalkan oleh pengguna.", "log-warn");
+    });
+
+    function start10sBootSequence() {
+      isRunning = true;
+      appendLog("==================================================", "log-highlight");
+      appendLog("MEMULAI PROCESS BOOT SYSTEM (10 DETIK)...", "log-highlight");
+      appendLog("==================================================", "log-highlight");
+
+      const startTime = Date.now();
+      const interval = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        if (elapsed < 10) {
+          appendLog(`[BOOT ${elapsed + 1}s/10s] Initializing kernel module & scanning network packets... 0x${Math.floor(Math.random()*0xffffff).toString(16)}`);
+        } else {
+          clearInterval(interval);
+          promptAuthModal();
+        }
+      }, 1000);
+    }
+
+    function promptAuthModal() {
+      appendLog("[SECURITY] Booting 10 detik selesai. Kode dihentikan sementara.", "log-warn");
+      appendLog("[SECURITY] Meminta otorisasi pengguna...", "log-highlight");
+      document.getElementById('auth-modal').style.display = 'flex';
+    }
+
+    async function submitAuthAndFetch() {
+      document.getElementById('auth-modal').style.display = 'none';
+      const token = document.getElementById('auth-code-input').value.trim();
+      appendLog(`[AUTH] Authorization Token Accepted: "${token}"`, "log-auth");
+      
+      const endpoint = 'https://gantuluu.github.io/contoh.json';
+      appendLog(`[HTTP GET] Requesting payload -> ${endpoint}`, 'log-warn');
+
+      let jsonPayload = null;
+
+      try {
+        const response = await fetch(endpoint);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        jsonPayload = await response.json();
+        appendLog(`[HTTP 200 OK] Data berhasil di-fetch dari ${endpoint}`, 'log-highlight');
+      } catch (e) {
+        appendLog(`[HTTP NOTICE] Fetch langsung (${e.message}). Menggunakan schema JSON fallback lengkap...`, 'log-warn');
+        jsonPayload = {
+          "id": "USR-99812-IDN",
+          "nip": "198203152006041002",
+          "nik": "3171021503820001",
+          "nama_lengkap": "Budi Santoso",
+          "gelar_depan": "Dr.",
+          "gelar_belakang": "S.H., M.H.",
+          "jenis_kelamin": "Laki-Laki",
+          "tempat_lahir": "Jakarta",
+          "tanggal_lahir": "1982-03-15",
+          "agama": "Islam",
+          "kewarganegaraan": "WNI",
+          "status": "AKTIF",
+          "foto": "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=300",
+          "profile_image": "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=300",
+          "jabatan": {
+            "nama_jabatan": "Kepala Bagian Hukum & Pengawasan Digital",
+            "instansi": "Kementerian Komunikasi dan Digital",
+            "unit_kerja": "Direktorat Jenderal Tata Kelola Siber",
+            "eselon": "II.a",
+            "status_jabatan": "Definitif",
+            "tanggal_mulai": "2021-08-01",
+            "tanggal_selesai": "2026-08-01",
+            "masa_jabatan": "3 Tahun 5 Bulan",
+            "atasan_langsung": "Direktur Jenderal Aplikasi Informatika",
+            "lokasi_kerja": "Jakarta Pusat, DKI Jakarta"
+          },
+          "kepegawaian": {
+            "status": "PNS",
+            "golongan": "IV/b",
+            "pangkat": "Pembina Utama Muda",
+            "tmt_pangkat": "2020-04-01",
+            "nomor_sk": "SK-809/KOMDIGI/2021",
+            "instansi_induk": "Kementerian Komunikasi dan Digital",
+            "status_pegawai": "Aktif"
+          },
+          "kontak": {
+            "email_kantor": "budi.santoso@komdigi.go.id",
+            "telepon_kantor": "(021) 3845678",
+            "alamat_kantor": "Jl. Medan Merdeka Barat No. 9, Jakarta Pusat",
+            "website_instansi": "https://komdigi.go.id"
+          },
+          "pendidikan": [
+            { "jenjang": "S3 (Doktor)", "gelar": "Dr. Hukum Siber", "keterangan": "Universitas Indonesia (2018)" },
+            { "jenjang": "S2 (Magister)", "gelar": "M.H. Hukum Tata Negara", "keterangan": "Universitas Gadjah Mada (2010)" },
+            { "jenjang": "S1 (Sarjana)", "gelar": "S.H. Ilmu Hukum", "keterangan": "Universitas Padjadjaran (2004)" }
+          ],
+          "riwayat_jabatan": [
+            { "jabatan": "Kepala Bagian Hukum & Pengawasan", "instansi": "Kementerian Komkominfo", "periode": "2021 - Sekarang" },
+            { "jabatan": "Kepala Subdirektorat Regulasi Siber", "instansi": "Kementerian Kominfo", "periode": "2017 - 2021" },
+            { "jabatan": "Kasi Bantuan Hukum", "instansi": "Kementerian Kominfo", "periode": "2012 - 2017" }
+          ],
+          "pelatihan": [
+            { "nama": "Diklat Pim II", "penyelenggara": "LAN RI", "tahun": 2022, "status": "LULUS" },
+            { "nama": "Cybersecurity Policy Forum", "penyelenggara": "Nanyang Tech University", "tahun": 2019, "status": "LULUS" }
+          ],
+          "penghargaan": [
+            { "nama": "Satyalancana Karya Satya XX Tahun", "pemberi": "Presiden RI", "tahun": 2023 }
+          ],
+          "organisasi": [
+            { "nama": "Masyarakat Hukum Siber Indonesia", "jabatan": "Ketua Bidang Regulasi", "periode": "2020 - 2025" }
+          ],
+          "partai_politik": {
+            "nama": "NON-PARTAI (NETRAL)",
+            "jabatan": "-",
+            "periode": "-",
+            "status_keanggotaan": "Bukan Anggota Parpol"
+          },
+          "riwayat_pemilu": [],
+          "lhkpn": {
+            "wajib_lapor": true,
+            "tahun_laporan": "2023",
+            "total_harta": 12500000000,
+            "aset_tanah_bangunan": 8500000000,
+            "aset_kendaraan": 1200000000,
+            "aset_kas": 2300000000,
+            "aset_lainnya": 500000000,
+            "utang": 700000000,
+            "kekayaan_bersih": 11800000000,
+            "status_verifikasi": "TERVERIFIKASI LENGKAP",
+            "link_laporan": "https://elhkpn.kpk.go.id"
+          },
+          "audit": {
+            "jumlah_audit": 3,
+            "audit_bpk": [
+              { "tahun": 2023, "status": "SELESAI", "opini": "WTP (Wajar Tanpa Pengecualian)" }
+            ],
+            "audit_internal": [
+              { "tahun": 2022, "instansi": "Inspektorat Jenderal", "status": "PATUH" }
+            ],
+            "temuan": []
+          },
+          "catatan_hukum": {
+            "status_warning": "HIJAU (BERSIH)",
+            "tingkat_risiko": "RENDAH",
+            "jumlah_laporan": 0,
+            "jumlah_penyelidikan": 0,
+            "jumlah_penyidikan": 0,
+            "jumlah_penuntutan": 0,
+            "jumlah_persidangan": 0,
+            "jumlah_putusan_bersalah": 0,
+            "total_nilai_kerugian_negara": 0,
+            "total_nilai_aset_disita": 0,
+            "total_nilai_aset_dikembalikan": 0,
+            "total_denda": 0,
+            "kasus": [],
+            "pelanggaran_administratif": []
+          },
+          "integritas": {
+            "skor": 96,
+            "warning": false,
+            "level": "TINGGI",
+            "status": "SANGAT BAIK",
+            "catatan": "Rekam jejak bersih. Tidak ditemukan indikasi konflik kepentingan atau tuntutan pidana."
+          },
+          "tugas_dan_fungsi": [
+            "Merumuskan draf kebijakan regulasi keamanan siber dan perlindungan data pribadi.",
+            "Melakukan koordinasi bantuan hukum instansi dengan lembaga penegak hukum.",
+            "Pemeriksaan kepatuhan hukum atas izin penyelenggara sistem elektronik."
+          ],
+          "prestasi": [
+            "Inisiator Peraturan Perlindungan Data Pribadi Sektor Siber (2022)"
+          ],
+          "dokumen": {
+            "cv": "#",
+            "sk_pengangkatan": "#",
+            "profil_pdf": "#",
+            "lhkpn_pdf": "#",
+            "putusan_pengadilan_pdf": []
+          },
+          "media_sosial": {
+            "linkedin": "https://linkedin.com",
+            "x": "https://x.com"
+          },
+          "metadata": {
+            "created_at": "2026-07-23T05:00:00Z",
+            "updated_at": "2026-07-23T05:45:00Z",
+            "last_sync": "2026-07-23T05:45:00Z",
+            "sumber_data": ["Database Kepegawaian", "LHKPN KPK", "BKN"],
+            "status_data": "VERIFIED",
+            "versi": "2.4.0"
+          }
+        };
+      }
+
+      currentPayloadData = jsonPayload;
+      renderSocialProfileUI(jsonPayload);
+      
+      appendLog("==================================================", "log-highlight");
+      appendLog("[SYSTEM] Pindah ke tampilan Fullpage Social Media UI...", "log-highlight");
+      
+      setTimeout(() => {
+        showSocialProfileView();
+      }, 800);
+    }
+
+    function renderSocialProfileUI(d) {
+      if (!d) return;
+
+      // Header & Avatar
+      const fullName = `${d.gelar_depan ? d.gelar_depan + ' ' : ''}${d.nama_lengkap || 'Tanpa Nama'}${d.gelar_belakang ? ', ' + d.gelar_belakang : ''}`;
+      document.getElementById('sm-nama-lengkap').innerText = fullName;
+      document.getElementById('sm-jabatan-primary').innerText = d.jabatan?.nama_jabatan || '-';
+      document.getElementById('sm-instansi-text').innerText = d.jabatan?.instansi || '-';
+      document.getElementById('sm-nip-text').innerText = d.nip || d.id || '-';
+      document.getElementById('sm-eselon-badge').innerText = `ESELON ${d.jabatan?.eselon || '-'}`;
+
+      if (d.foto || d.profile_image) {
+        document.getElementById('prof-avatar').src = d.foto || d.profile_image;
+      }
+
+      // Quick Banner Stats
+      document.getElementById('banner-lhkpn').innerText = d.lhkpn?.kekayaan_bersih ? `Rp ${Number(d.lhkpn.kekayaan_bersih).toLocaleString('id-ID')}` : 'Rp 0';
+      document.getElementById('banner-integritas').innerText = `${d.integritas?.skor || 0} / 100`;
+      document.getElementById('banner-kasus').innerText = `${d.catatan_hukum?.kasus?.length || 0} Perkara`;
+
+      // Sidebar Info
+      document.getElementById('sm-nik').innerText = d.nik || '-';
+      document.getElementById('sm-ttl').innerText = `${d.tempat_lahir || '-'}, ${d.tanggal_lahir || '-'}`;
+      document.getElementById('sm-jk').innerText = d.jenis_kelamin || '-';
+      document.getElementById('sm-agama').innerText = `${d.agama || '-'} / ${d.kewarganegaraan || 'WNI'}`;
+      document.getElementById('sm-pangkat').innerText = `${d.kepegawaian?.pangkat || '-'} (${d.kepegawaian?.golongan || '-'})`;
+      document.getElementById('sm-status-pegawai').innerText = d.kepegawaian?.status || 'PNS';
+
+      // Kontak
+      document.getElementById('sm-email').innerText = d.kontak?.email_kantor || '-';
+      document.getElementById('sm-email').href = `mailto:${d.kontak?.email_kantor || '#'}`;
+      document.getElementById('sm-telp').innerText = d.kontak?.telepon_kantor || '-';
+      document.getElementById('sm-alamat').innerText = d.kontak?.alamat_kantor || '-';
+
+      // Parpol
+      if (d.partai_politik) {
+        document.getElementById('sm-parpol-nama').innerText = d.partai_politik.nama || 'Netral';
+        document.getElementById('sm-parpol-jabatan').innerText = d.partai_politik.jabatan || 'Bukan Parpol';
+      }
+
+      // Tab Overview Gauges
+      document.getElementById('card-skor-integritas').innerText = d.integritas?.skor || 0;
+      document.getElementById('card-level-integritas').innerText = `LEVEL: ${d.integritas?.level || 'NORMAL'}`;
+      document.getElementById('card-lhkpn-total').innerText = d.lhkpn?.kekayaan_bersih ? `Rp ${Number(d.lhkpn.kekayaan_bersih).toLocaleString('id-ID')}` : 'Rp 0';
+      document.getElementById('card-lhkpn-verifikasi').innerText = d.lhkpn?.status_verifikasi || 'TERVERIFIKASI';
+      document.getElementById('card-risiko-hukum').innerText = d.catatan_hukum?.tingkat_risiko || 'LOW';
+      document.getElementById('card-jumlah-kasus').innerText = `${d.catatan_hukum?.jumlah_laporan || 0} Laporan Hukum`;
+
+      // Tugas & Fungsi List
+      const tugasContainer = document.getElementById('sm-tugas-list');
+      if (d.tugas_dan_fungsi && d.tugas_dan_fungsi.length > 0) {
+        tugasContainer.innerHTML = d.tugas_dan_fungsi.map(t => `<li>${t}</li>`).join('');
+      } else {
+        tugasContainer.innerHTML = '<li>Tidak ada rincian tugas dan fungsi khusus.</li>';
+      }
+
+      document.getElementById('sm-integritas-catatan').innerText = d.integritas?.catatan || 'Tidak ada catatan integritas khusus.';
+
+      // Tab Jabatan Details
+      document.getElementById('det-jabatan').innerText = d.jabatan?.nama_jabatan || '-';
+      document.getElementById('det-instansi').innerText = d.jabatan?.instansi || '-';
+      document.getElementById('det-unit').innerText = d.jabatan?.unit_kerja || '-';
+      document.getElementById('det-eselon').innerText = `${d.jabatan?.eselon || '-'} / Masa: ${d.jabatan?.masa_jabatan || '-'}`;
+      document.getElementById('det-atasan').innerText = d.jabatan?.atasan_langsung || '-';
+      document.getElementById('det-lokasi').innerText = d.jabatan?.lokasi_kerja || '-';
+
+      // Career Timeline
+      const timelineBox = document.getElementById('sm-riwayat-jabatan-container');
+      if (d.riwayat_jabatan && d.riwayat_jabatan.length > 0) {
+        timelineBox.innerHTML = d.riwayat_jabatan.map(j => `
+          <div class="relative">
+            <div class="absolute -left-[21px] top-1 w-3 h-3 rounded-full bg-emerald-500 border-2 border-black"></div>
+            <h4 class="text-xs font-bold text-gray-200">${j.jabatan}</h4>
+            <p class="text-[11px] text-emerald-400">${j.instansi}</p>
+            <span class="text-[10px] text-gray-500">${j.periode}</span>
+          </div>
+        `).join('');
+      } else {
+        timelineBox.innerHTML = '<p class="text-xs text-gray-500">Tidak ada data riwayat jabatan.</p>';
+      }
+
+      // Education Cards
+      const eduBox = document.getElementById('sm-pendidikan-container');
+      if (d.pendidikan && d.pendidikan.length > 0) {
+        eduBox.innerHTML = d.pendidikan.map(e => `
+          <div class="bg-black/40 p-3 rounded border border-green-950">
+            <span class="text-xs font-bold text-emerald-300 block">${e.jenjang}</span>
+            <span class="text-[11px] text-gray-200 block">${e.gelar}</span>
+            <span class="text-[10px] text-gray-500">${e.keterangan}</span>
+          </div>
+        `).join('');
+      } else {
+        eduBox.innerHTML = '<p class="text-xs text-gray-500">Tidak ada riwayat pendidikan.</p>';
+      }
+
+      // Legal Tab
+      if (d.catatan_hukum) {
+        document.getElementById('cnt-penyelidikan').innerText = d.catatan_hukum.jumlah_penyelidikan || 0;
+        document.getElementById('cnt-penyidikan').innerText = d.catatan_hukum.jumlah_penyidikan || 0;
+        document.getElementById('cnt-penuntut').innerText = d.catatan_hukum.jumlah_penuntutan || 0;
+        document.getElementById('cnt-putusan').innerText = d.catatan_hukum.jumlah_putusan_bersalah || 0;
+        document.getElementById('cnt-total-kerugian').innerText = `Kerugian Negara: Rp ${Number(d.catatan_hukum.total_nilai_kerugian_negara || 0).toLocaleString('id-ID')}`;
+
+        const kasusBox = document.getElementById('sm-kasus-container');
+        if (d.catatan_hukum.kasus && d.catatan_hukum.kasus.length > 0) {
+          kasusBox.innerHTML = d.catatan_hukum.kasus.map(k => `
+            <div class="bg-black/50 p-4 rounded-lg border border-red-950 text-xs space-y-2">
+              <div class="flex justify-between items-start">
+                <span class="font-bold text-red-400">${k.judul_perkara || 'Perkara Hukum'}</span>
+                <span class="px-2 py-0.5 rounded text-[10px] bg-red-950 text-red-300 border border-red-800">${k.status || 'PROSES'}</span>
+              </div>
+              <p class="text-gray-400 text-[11px]">No. Perkara: ${k.nomor_perkara || '-'}</p>
+              <p class="text-gray-300">${k.keterangan || '-'}</p>
+            </div>
+          `).join('');
+        } else {
+          kasusBox.innerHTML = `
+            <div class="bg-black/30 p-4 rounded text-center border border-green-950">
+              <i class="fa-solid fa-shield-halved text-emerald-500 text-2xl mb-2"></i>
+              <p class="text-xs text-gray-300 font-bold">REKAM JEJAK BERSIH</p>
+              <p class="text-[11px] text-gray-500">Tidak ditemukan kasus pidana maupun catatan perkara hukum.</p>
+            </div>
+          `;
+        }
+      }
+
+      // LHKPN Breakdown
+      if (d.lhkpn) {
+        document.getElementById('lhkpn-tanah').innerText = `Rp ${Number(d.lhkpn.aset_tanah_bangunan || 0).toLocaleString('id-ID')}`;
+        document.getElementById('lhkpn-kendaraan').innerText = `Rp ${Number(d.lhkpn.aset_kendaraan || 0).toLocaleString('id-ID')}`;
+        document.getElementById('lhkpn-kas').innerText = `Rp ${Number(d.lhkpn.aset_kas || 0).toLocaleString('id-ID')}`;
+        document.getElementById('lhkpn-utang').innerText = `Rp ${Number(d.lhkpn.utang || 0).toLocaleString('id-ID')}`;
+      }
+
+      // Audit list
+      const auditBox = document.getElementById('sm-audit-container');
+      if (d.audit && d.audit.audit_bpk) {
+        auditBox.innerHTML = d.audit.audit_bpk.map(a => `
+          <div class="flex justify-between items-center bg-black/40 p-3 rounded border border-green-950">
+            <div>
+              <span class="font-bold text-gray-200">Audit BPK Tahun ${a.tahun}</span>
+              <span class="block text-[11px] text-emerald-400">Opini: ${a.opini}</span>
+            </div>
+            <span class="px-2 py-1 bg-emerald-950 text-emerald-300 border border-emerald-800 rounded text-[10px]">${a.status}</span>
+          </div>
+        `).join('');
+      } else {
+        auditBox.innerHTML = '<p class="text-gray-500">Belum ada rincian audit.</p>';
+      }
+
+      // Dokumen & Medsos links
+      const docBox = document.getElementById('sm-dokumen-links');
+      if (d.dokumen) {
+        docBox.innerHTML = `
+          <a href="${d.dokumen.cv || '#'}" target="_blank" class="p-3 bg-black/40 rounded border border-green-950 hover:border-emerald-500 text-emerald-300 flex items-center gap-2">
+            <i class="fa-solid fa-file-pdf text-red-500"></i> Curiculum Vitae (CV)
+          </a>
+          <a href="${d.dokumen.lhkpn_pdf || '#'}" target="_blank" class="p-3 bg-black/40 rounded border border-green-950 hover:border-emerald-500 text-emerald-300 flex items-center gap-2">
+            <i class="fa-solid fa-file-pdf text-red-500"></i> Dokumen LHKPN PDF
+          </a>
+        `;
+      }
+
+      const medsosBox = document.getElementById('sm-medsos-links');
+      if (d.media_sosial) {
+        medsosBox.innerHTML = Object.entries(d.media_sosial).map(([platform, url]) => `
+          <a href="${url}" target="_blank" class="px-3 py-2 bg-emerald-950 border border-emerald-800 rounded text-emerald-300 text-xs flex items-center gap-2 hover:bg-emerald-900 capitalize">
+            <i class="fa-brands fa-${platform}"></i> ${platform}
+          </a>
+        `).join('');
+      }
+    }
+
+    /* Tab Switcher Logic */
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+
+      event.currentTarget.classList.add('active');
+      document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+      playBeep(800, 0.03);
+    }
+
+    /* View Mode Switcher (Terminal vs Social Profile UI) */
+    function toggleViewMode() {
+      const term = document.getElementById('terminal-wrapper');
+      const soc = document.getElementById('social-profile-wrapper');
+      const btn = document.getElementById('btn-view-mode');
+
+      if (soc.style.display === 'flex') {
+        soc.style.display = 'none';
+        term.style.display = 'flex';
+        btn.innerHTML = '<i class="fa-solid fa-id-card mr-1"></i> VIEW: SOCIAL PROFILE UI';
+      } else {
+        showSocialProfileView();
+      }
+      playBeep(1000, 0.05);
+    }
+
+    function showSocialProfileView() {
+      document.getElementById('terminal-wrapper').style.display = 'none';
+      const soc = document.getElementById('social-profile-wrapper');
+      soc.style.display = 'flex';
+      document.getElementById('btn-view-mode').innerHTML = '<i class="fa-solid fa-terminal mr-1"></i> VIEW: TERMINAL';
+    }
+
+    /* JSON Modal Viewer */
+    function openJsonModal() {
+      if (currentPayloadData) {
+        document.getElementById('json-rendered-content').innerText = JSON.stringify(currentPayloadData, null, 2);
+      } else {
+        document.getElementById('json-rendered-content').innerText = "// Data belum di-fetch dari endpoint.";
+      }
+      document.getElementById('json-modal').style.display = 'flex';
+    }
+
+    function closeJsonModal() {
+      document.getElementById('json-modal').style.display = 'none';
+    }
+
+    /* Command prompt input inside terminal */
+    const cmdInput = document.getElementById('cmd-input');
+    cmdInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const cmd = cmdInput.value.trim().toLowerCase();
+        appendLog(`root@kali:~# ${cmd}`, 'log-highlight');
+        cmdInput.value = '';
+
+        if (cmd === 'help') {
+          appendLog("Perintah Tersedia:", "log-info");
+          appendLog("  fetch    - Re-fetch data dari gantuluu.github.io/contoh.json", "log-info");
+          appendLog("  ui       - Alihkan ke tampilan Fullpage Social Media UI", "log-info");
+          appendLog("  clear    - Bersihkan layar terminal", "log-info");
+        } else if (cmd === 'fetch') {
+          promptAuthModal();
+        } else if (cmd === 'ui') {
+          showSocialProfileView();
+        } else if (cmd === 'clear') {
+          terminalBody.innerHTML = '';
+        } else {
+          appendLog(`bash: ${cmd}: command not found. Ketik 'help'`, "log-alert");
+        }
+      }
+    });
+
+    /* Render loop animation */
+    function renderLoop() {
+      drawMatrix();
+      requestAnimationFrame(renderLoop);
+    }
+
+    window.onload = function() {
+      requestAnimationFrame(renderLoop);
+    };
+  </script>
+</body>
+</html>
