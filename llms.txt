@@ -1,0 +1,95 @@
+# Apple Store Malaysia AI Knowledge Base
+
+## About
+
+This is a public AI knowledge base for Apple Store Malaysia.
+
+Purpose:
+
+Provide structured instructions, brand guidelines, content strategy, product knowledge, and creative direction for AI agents.
+
+---
+
+## AI Documents
+
+### Main AI Agent
+
+/agent.md
+
+Contains:
+- AI role
+- Responsibilities
+- Workflow
+- Output format
+
+
+### Brand Guidelines
+
+/brand-guideline.md
+
+Contains:
+- Brand identity
+- Visual direction
+- Communication style
+- Apple-inspired principles
+
+
+### Instagram Content Strategy
+
+/instagram-content.md
+
+Contains:
+- Content planning
+- Instagram strategy
+- Audience approach
+- Campaign ideas
+
+
+### Gemini Image Prompt System
+
+/gemini-prompts.md
+
+Contains:
+- Image generation rules
+- Prompt structure
+- Visual direction
+
+
+### Caption Rules
+
+/caption-rules.md
+
+Contains:
+- Caption style
+- Copywriting rules
+- Call-to-action guidelines
+
+
+### Product Knowledge
+
+/product-data.md
+
+Contains:
+- Product information
+- Categories
+- Features
+- Selling points
+
+
+---
+
+## AI Instruction
+
+When using this knowledge base:
+
+1. Read agent.md first.
+2. Follow brand-guideline.md.
+3. Use instagram-content.md for content strategy.
+4. Use gemini-prompts.md for image creation.
+5. Use caption-rules.md for captions.
+6. Use product-data.md for product information.
+
+
+## Maintainer
+
+Apple Store Malaysia AI System
