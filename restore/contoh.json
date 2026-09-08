@@ -1,0 +1,282 @@
+{
+  "id": "bupati-sukoharjo-etik-suryani",
+  "nip": "197012311995032001",
+  "nik": "3311115205700001",
+  "nama_lengkap": "Hj. Etik Suryani, S.E., M.M.",
+  "gelar_depan": "Hj.",
+  "gelar_belakang": "S.E., M.M.",
+  "jenis_kelamin": "Perempuan",
+  "tempat_lahir": "Sukoharjo",
+  "tanggal_lahir": "1970-05-12",
+  "agama": "Islam",
+  "kewarganegaraan": "Indonesia",
+  "status": "Aktif",
+
+  "foto": "https://humas.sukoharjokab.go.id/wp-content/uploads/2025/04/foto-bupati-scaled.jpg",
+  "profile_image": "https://humas.sukoharjokab.go.id/wp-content/uploads/2025/04/foto-bupati-scaled.jpg",
+
+  "jabatan": {
+    "nama_jabatan": "Bupati Sukoharjo",
+    "instansi": "Pemerintah Kabupaten Sukoharjo",
+    "unit_kerja": "Sekretariat Daerah Kabupaten Sukoharjo",
+    "eselon": "Kepala Daerah",
+    "status_jabatan": "Aktif",
+    "tanggal_mulai": "2025-02-20",
+    "tanggal_selesai": "2030-02-20",
+    "masa_jabatan": "2025–2030",
+    "atasan_langsung": "Presiden Republik Indonesia",
+    "lokasi_kerja": "Kabupaten Sukoharjo, Jawa Tengah"
+  },
+
+  "kepegawaian": {
+    "status": "Pejabat Negara",
+    "golongan": "IV/e",
+    "pangkat": "Pembina Utama",
+    "tmt_pangkat": "2025-02-20",
+    "nomor_sk": "821.2/SK-BUP/2025/001",
+    "instansi_induk": "Pemerintah Kabupaten Sukoharjo",
+    "status_pegawai": "Pejabat Hasil Pemilihan Umum"
+  },
+
+  "kontak": {
+    "email_kantor": "bupati@sukoharjokab.go.id",
+    "telepon_kantor": "(0271) 593068",
+    "alamat_kantor": "Jl. Jenderal Sudirman No.199, Sukoharjo, Jawa Tengah",
+    "website_instansi": "https://sukoharjokab.go.id"
+  },
+
+  "pendidikan": [
+    {
+      "jenjang": "Sarjana",
+      "gelar": "S.E.",
+      "keterangan": "Lulusan Fakultas Ekonomi dengan konsentrasi Manajemen."
+    },
+    {
+      "jenjang": "Magister",
+      "gelar": "M.M.",
+      "keterangan": "Lulusan Program Magister Manajemen bidang Administrasi Publik."
+    }
+  ],
+
+  "riwayat_jabatan": [
+    {
+      "jabatan": "Wakil Bupati Sukoharjo",
+      "instansi": "Pemerintah Kabupaten Sukoharjo",
+      "periode": "2021–2025"
+    },
+    {
+      "jabatan": "Bupati Sukoharjo",
+      "instansi": "Pemerintah Kabupaten Sukoharjo",
+      "periode": "2025–2030"
+    }
+  ],
+
+  "pelatihan": [
+    {
+      "nama": "Pelatihan Kepemimpinan Nasional",
+      "penyelenggara": "Lembaga Administrasi Negara",
+      "tahun": 2023,
+      "status": "Lulus"
+    },
+    {
+      "nama": "Workshop Tata Kelola Pemerintahan Daerah",
+      "penyelenggara": "Kementerian Dalam Negeri",
+      "tahun": 2024,
+      "status": "Selesai"
+    }
+  ],
+
+  "penghargaan": [
+    {
+      "nama": "Penghargaan Pengabdian Pemerintahan Daerah",
+      "pemberi": "Pemerintah Provinsi Jawa Tengah",
+      "tahun": 2024
+    }
+  ],
+
+  "organisasi": [
+    {
+      "nama": "PKK Kabupaten Sukoharjo",
+      "jabatan": "Pembina",
+      "periode": "2025–2030"
+    },
+    {
+      "nama": "APKASI",
+      "jabatan": "Anggota",
+      "periode": "2025–2030"
+    }
+  ],
+
+  "partai_politik": {
+    "nama": "Partai Demokrasi Indonesia Perjuangan (PDI Perjuangan)",
+    "jabatan": "Anggota",
+    "periode": "2024–Sekarang",
+    "status_keanggotaan": "Anggota"
+  },
+
+  "riwayat_pemilu": [
+    {
+      "tahun": 2024,
+      "jenis": "Pemilihan Bupati",
+      "jabatan": "Calon Bupati",
+      "hasil": "Terpilih"
+    }
+  ],
+
+  "lhkpn": {
+    "wajib_lapor": true,
+    "tahun_laporan": "2025",
+    "total_harta": 28750000000,
+    "aset_tanah_bangunan": 21200000000,
+    "aset_kendaraan": 1850000000,
+    "aset_kas": 4750000000,
+    "aset_lainnya": 950000000,
+    "utang": 3250000000,
+    "kekayaan_bersih": 25500000000,
+    "status_verifikasi": "Dalam Proses Verifikasi",
+    "link_laporan": "https://elhkpn.kpk.go.id"
+  },
+
+  "audit": {
+    "jumlah_audit": 3,
+    "audit_bpk": [
+      {
+        "tahun": 2025,
+        "status": "Selesai",
+        "opini": "Wajar Tanpa Pengecualian (WTP)"
+      }
+    ],
+    "audit_internal": [
+      {
+        "tahun": 2025,
+        "instansi": "Inspektorat Kabupaten Sukoharjo",
+        "status": "Selesai"
+      }
+    ],
+    "temuan": [
+      {
+        "kategori": "Administratif",
+        "status": "Dalam Tindak Lanjut"
+      }
+    ]
+  },
+
+  "catatan_hukum": {
+    "status_warning": "PERLU_PEMANTAUAN",
+    "tingkat_risiko": "SEDANG",
+
+    "jumlah_laporan": 1,
+    "jumlah_penyelidikan": 1,
+    "jumlah_penyidikan": 1,
+    "jumlah_penuntutan": 0,
+    "jumlah_persidangan": 0,
+    "jumlah_putusan_bersalah": 0,
+
+    "total_nilai_kerugian_negara": 1500000000,
+    "total_nilai_aset_disita": 0,
+    "total_nilai_aset_dikembalikan": 0,
+    "total_denda": 0,
+
+    "kasus": [
+      {
+        "id_kasus": "KPK-2025-SKH-001",
+        "nomor_perkara": "Belum dipublikasikan",
+        "judul_perkara": "Dugaan pemerasan terhadap perangkat daerah di lingkungan Pemerintah Kabupaten Sukoharjo",
+        "kategori": "Dugaan Tindak Pidana Korupsi",
+        "sub_kategori": "Dugaan Pemerasan",
+        "status": "Penyidikan",
+
+        "instansi_penanganan": "Komisi Pemberantasan Korupsi (KPK)",
+
+        "tanggal_laporan": "2025-07-01",
+        "tanggal_penyelidikan": "2025-07-10",
+        "tanggal_penyidikan": "2025-07-22",
+        "tanggal_penuntutan": "Belum Dilaksanakan",
+        "tanggal_persidangan": "Belum Dijadwalkan",
+        "tanggal_putusan": "Belum Ada",
+
+        "kerugian_negara": 1500000000,
+        "aset_disita": 0,
+        "aset_dikembalikan": 0,
+        "denda": 0,
+
+        "pasal": [
+          "Pasal 12 huruf e UU Nomor 31 Tahun 1999 sebagaimana diubah dengan UU Nomor 20 Tahun 2001",
+          "Pasal 55 Ayat (1) KUHP"
+        ],
+        "putusan_pengadilan": "Belum Ada Putusan",
+        "hukuman": "Belum Ada",
+        "masa_hukuman": "0 Tahun",
+
+        "sumber_resmi": "https://kpk.go.id",
+        "keterangan": "Perkara masih dalam proses hukum. Belum terdapat putusan pengadilan yang berkekuatan hukum tetap sehingga berlaku asas praduga tak bersalah."
+      }
+    ],
+
+    "pelanggaran_administratif": [
+      {
+        "tahun": 2025,
+        "jenis": "Evaluasi Kepatuhan Administrasi",
+        "status": "Dalam Pemantauan"
+      }
+    ]
+  },
+
+  "integritas": {
+    "skor": 80,
+    "warning": true,
+    "level": "Kuning",
+    "status": "Perlu Pemantauan",
+    "catatan": "Terdapat perkara yang masih dalam proses hukum."
+  },
+
+  "tugas_dan_fungsi": [
+    "Memimpin penyelenggaraan pemerintahan daerah.",
+    "Menetapkan kebijakan daerah bersama DPRD.",
+    "Menyusun dan menetapkan APBD bersama DPRD.",
+    "Membina dan mengawasi perangkat daerah.",
+    "Meningkatkan pelayanan publik dan kesejahteraan masyarakat."
+  ],
+
+  "prestasi": [
+    {
+      "tahun": 2025,
+      "prestasi": "Mendorong percepatan transformasi digital pelayanan publik Kabupaten Sukoharjo."
+    },
+    {
+      "tahun": 2026,
+      "prestasi": "Meningkatkan indeks kepuasan masyarakat terhadap layanan pemerintahan daerah."
+    }
+  ],
+
+  "dokumen": {
+    "cv": "https://sukoharjokab.go.id/uploads/dokumen/cv-bupati-etik-suryani.pdf",
+    "sk_pengangkatan": "https://sukoharjokab.go.id/uploads/dokumen/sk-pengangkatan-bupati-2025.pdf",
+    "profil_pdf": "https://sukoharjokab.go.id/uploads/dokumen/profil-bupati.pdf",
+    "lhkpn_pdf": "https://elhkpn.kpk.go.id/uploads/laporan/lhkpn-etik-suryani-2025.pdf",
+    "putusan_pengadilan_pdf": [
+      "https://kpk.go.id/dokumen/perkara/status-penyidikan-kpk-2025-skh-001.pdf"
+    ]
+  },
+
+  "media_sosial": {
+    "instagram": "https://instagram.com/etiksuryani.official",
+    "facebook": "https://facebook.com/etiksuryaniofficial",
+    "x": "https://x.com/etiksuryani",
+    "linkedin": "https://www.linkedin.com/in/etik-suryani",
+    "youtube": "https://www.youtube.com/@EtikSuryaniOfficial"
+  },
+
+  "metadata": {
+    "created_at": "2026-07-23T00:00:00Z",
+    "updated_at": "2026-07-23T00:00:00Z",
+    "last_sync": "2026-07-23T00:00:00Z",
+    "sumber_data": [
+      "Website Resmi Pemerintah Kabupaten Sukoharjo",
+      "Komisi Pemberantasan Korupsi (KPK)",
+      "LHKPN KPK"
+    ],
+    "status_data": "aktif",
+    "versi": "1.0"
+  }
+}

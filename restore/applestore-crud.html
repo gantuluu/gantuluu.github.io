@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-950">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Apple Product Studio - CRUD Manager</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Inter & SF-Pro style font -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+          },
+          colors: {
+            apple: {
+              bg: '#f5f5f7',
+              card: '#ffffff',
+              dark: '#1d1d1f',
+              blue: '#0071e3',
+              blueHover: '#0077ed',
+              gray: '#86868b',
+              lightGray: '#e8e8ed',
+              red: '#ff3b30',
+              green: '#34c759',
+            }
+          },
+          aspectRatio: {
+            '1': '1',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom scrollbars for clean mobile look */
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #d1d5db;
+      border-radius: 9999px;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    /* Touch active state */
+    .active-press:active {
+      transform: scale(0.97);
+      transition: transform 0.12s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    /* Smooth view switching */
+    .view-transition {
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+  </style>
+</head>
+
+<body class="h-full font-sans antialiased bg-slate-950 text-slate-900 flex justify-center items-center selection:bg-apple-blue selection:text-white">
+
+  <!-- Mobile Container Wrapper (Max 500px width) -->
+  <div id="app-root" class="relative w-full max-w-[500px] h-full sm:h-[94vh] sm:rounded-[36px] shadow-2xl overflow-hidden flex flex-col bg-apple-bg border-0 sm:border border-slate-800/40">
+
+    <!-- Floating Toast Feedback System -->
+    <div id="toast-container" class="absolute top-4 left-0 right-0 z-50 flex flex-col items-center gap-2 px-4 pointer-events-none"></div>
+
+    <!-- Custom Modal Confirmation Dialog -->
+    <div id="custom-modal" class="hidden absolute inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-5">
+      <div class="bg-white rounded-3xl max-w-xs w-full p-6 shadow-2xl text-center transform transition-all scale-100">
+        <div id="modal-icon-bg" class="w-14 h-14 rounded-full bg-red-100 text-apple-red mx-auto flex items-center justify-center mb-4">
+          <i id="modal-icon" class="fa-solid fa-triangle-exclamation text-2xl"></i>
+        </div>
+        <h3 id="modal-title" class="text-lg font-bold text-apple-dark mb-1">Delete Product?</h3>
+        <p id="modal-message" class="text-xs text-apple-gray mb-6 leading-relaxed">This action will remove the product permanently from Supabase.</p>
+        <div class="flex gap-2">
+          <button id="modal-cancel-btn" type="button" class="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-2xl text-xs transition active-press">Cancel</button>
+          <button id="modal-confirm-btn" type="button" class="flex-1 py-3 bg-apple-red hover:bg-red-600 text-white font-semibold rounded-2xl text-xs transition shadow-sm active-press">Delete</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sticky Header Navigation -->
+    <header class="h-[58px] min-h-[58px] bg-white/80 backdrop-blur-xl border-b border-slate-200/80 px-4 flex items-center justify-between z-30 relative sticky top-0">
+      <div class="flex items-center w-12">
+        <button id="header-back-btn" class="hidden w-9 h-9 flex items-center justify-center rounded-full hover:bg-slate-100 text-apple-dark active-press transition" aria-label="Go Back">
+          <i class="fa-solid fa-chevron-left text-sm font-bold"></i>
+        </button>
+      </div>
+
+      <div class="flex-1 text-center truncate px-2">
+        <h1 id="header-title" class="text-base font-bold text-apple-dark tracking-tight">Studio Catalog</h1>
+      </div>
+
+      <div id="header-actions" class="flex items-center justify-end w-12">
+        <button id="header-refresh-btn" class="w-9 h-9 flex items-center justify-center rounded-full hover:bg-slate-100 text-apple-dark active-press transition" title="Reload Catalog">
+          <i id="header-refresh-icon" class="fa-solid fa-arrows-rotate text-xs"></i>
+        </button>
+        <button id="header-delete-btn" class="hidden w-9 h-9 flex items-center justify-center rounded-full hover:bg-red-50 text-apple-red active-press transition" title="Delete Product">
+          <i class="fa-regular fa-trash-can text-sm"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Scrollable Main Content Container -->
+    <main id="main-content" class="flex-1 overflow-y-auto overflow-x-hidden relative bg-apple-bg pb-24">
+
+      <!-- ==================== DASHBOARD PAGE ==================== -->
+      <section id="page-dashboard" class="view-transition p-4 space-y-4">
+        
+        <!-- Category Pill Tabs -->
+        <div class="sticky top-0 z-20 -mx-4 -mt-4 px-4 py-3 bg-apple-bg/90 backdrop-blur-md border-b border-slate-200/60">
+          <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
+            <button class="category-tab active px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition bg-apple-dark text-white shadow-xs" data-category="ALL">All Products</button>
+            <button class="category-tab px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition bg-white text-apple-gray hover:text-apple-dark border border-slate-200" data-category="iPhone"><i class="fa-solid fa-mobile-screen mr-1.5"></i>iPhone</button>
+            <button class="category-tab px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition bg-white text-apple-gray hover:text-apple-dark border border-slate-200" data-category="iWatch"><i class="fa-regular fa-clock mr-1.5"></i>iWatch</button>
+            <button class="category-tab px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition bg-white text-apple-gray hover:text-apple-dark border border-slate-200" data-category="iMac"><i class="fa-solid fa-desktop mr-1.5"></i>iMac</button>
+            <button class="category-tab px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition bg-white text-apple-gray hover:text-apple-dark border border-slate-200" data-category="iPad"><i class="fa-solid fa-tablet-screen-button mr-1.5"></i>iPad</button>
+            <button class="category-tab px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition bg-white text-apple-gray hover:text-apple-dark border border-slate-200" data-category="Airpods"><i class="fa-solid fa-headphones mr-1.5"></i>Airpods</button>
+          </div>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="relative">
+          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-apple-gray text-xs"></i>
+          <input id="search-input" type="text" placeholder="Search by title, category, or ID..." class="w-full pl-9 pr-9 py-2.5 bg-white border border-slate-200/80 rounded-2xl text-xs placeholder-apple-gray focus:outline-none focus:border-apple-blue focus:ring-2 focus:ring-apple-blue/20 transition shadow-xs">
+          <button id="search-clear-btn" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-apple-gray hover:text-apple-dark p-1">
+            <i class="fa-solid fa-xmark text-xs"></i>
+          </button>
+        </div>
+
+        <!-- Skeleton Loading View -->
+        <div id="loading-skeleton" class="grid grid-cols-2 gap-3 pt-1">
+          <div class="bg-white p-3 rounded-2xl border border-slate-200/80 shadow-xs space-y-3 animate-pulse">
+            <div class="w-full aspect-square bg-slate-200 rounded-xl"></div>
+            <div class="h-3 bg-slate-200 rounded w-3/4"></div>
+            <div class="h-3 bg-slate-200 rounded w-1/2"></div>
+          </div>
+          <div class="bg-white p-3 rounded-2xl border border-slate-200/80 shadow-xs space-y-3 animate-pulse">
+            <div class="w-full aspect-square bg-slate-200 rounded-xl"></div>
+            <div class="h-3 bg-slate-200 rounded w-2/3"></div>
+            <div class="h-3 bg-slate-200 rounded w-1/3"></div>
+          </div>
+        </div>
+
+        <!-- Empty State View -->
+        <div id="empty-state" class="hidden py-16 text-center space-y-3">
+          <div class="w-16 h-16 bg-slate-200/70 text-apple-gray rounded-full flex items-center justify-center mx-auto text-2xl">
+            <i class="fa-solid fa-box-open"></i>
+          </div>
+          <h3 class="text-sm font-bold text-apple-dark">No Products Found</h3>
+          <p class="text-xs text-apple-gray max-w-xs mx-auto">Try selecting another category or add a new Apple product to the inventory.</p>
+          <button id="empty-add-btn" class="mt-2 inline-flex items-center gap-2 px-4 py-2.5 bg-apple-blue text-white text-xs font-semibold rounded-2xl shadow-sm hover:bg-apple-blueHover active-press transition">
+            <i class="fa-solid fa-plus"></i> Create Product
+          </button>
+        </div>
+
+        <!-- 2 Column Product Grid (1:1 Ratio) -->
+        <div id="product-grid" class="grid grid-cols-2 gap-3"></div>
+
+      </section>
+
+      <!-- ==================== EDIT PRODUCT PAGE ==================== -->
+      <section id="page-editor" class="hidden view-transition p-4 space-y-5">
+        <form id="product-form" class="space-y-5" onsubmit="return false;">
+
+          <!-- Basic Auto-Generated Keys Card -->
+          <div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-xs space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+              <span class="text-xs font-bold uppercase tracking-wider text-apple-gray">System Meta</span>
+              <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-mono font-medium">Auto-Generated</span>
+            </div>
+
+            <div class="grid grid-cols-1 gap-3 text-xs">
+              <div>
+                <label class="block font-medium text-apple-gray mb-1">Item Group ID (Primary Key - 12 Hex)</label>
+                <input type="text" id="form-item_group_id" name="item_group_id" readonly class="w-full px-3 py-2.5 bg-slate-100 border border-slate-200 rounded-2xl font-mono text-xs font-bold text-apple-dark focus:outline-none cursor-not-allowed">
+              </div>
+
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block font-medium text-apple-gray mb-1">Generated Link</label>
+                  <input type="text" id="form-link" name="link" readonly class="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-2xl font-mono text-[11px] text-apple-blue font-semibold focus:outline-none cursor-not-allowed">
+                </div>
+                <div>
+                  <label class="block font-medium text-apple-gray mb-1">Inventory (24-231)</label>
+                  <input type="number" id="form-inventory" name="inventory" readonly class="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-2xl font-mono text-xs font-bold text-apple-dark focus:outline-none cursor-not-allowed">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Product Details Card -->
+          <div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-xs space-y-3.5">
+            <div class="flex items-center gap-2 text-apple-dark font-bold text-xs border-b border-slate-100 pb-2">
+              <i class="fa-solid fa-cube text-apple-blue"></i>
+              <span>Product Specifications</span>
+            </div>
+
+            <div>
+              <label for="form-category" class="block text-xs font-semibold text-apple-dark mb-1">Category <span class="text-apple-red">*</span></label>
+              <select id="form-category" name="category" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-medium text-apple-dark focus:outline-none focus:border-apple-blue focus:ring-2 focus:ring-apple-blue/20 transition">
+                <option value="iPhone">iPhone</option>
+                <option value="iWatch">iWatch</option>
+                <option value="iMac">iMac</option>
+                <option value="iPad">iPad</option>
+                <option value="Airpods">Airpods</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="form-title" class="block text-xs font-semibold text-apple-dark mb-1">Title <span class="text-apple-red">*</span></label>
+              <input type="text" id="form-title" name="title" required placeholder="e.g. iPhone 15 Pro Max" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs text-apple-dark focus:outline-none focus:border-apple-blue focus:ring-2 focus:ring-apple-blue/20 transition">
+            </div>
+
+            <div>
+              <label for="form-description" class="block text-xs font-semibold text-apple-dark mb-1">Description</label>
+              <textarea id="form-description" name="description" rows="3" placeholder="Provide full product summary..." class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs text-apple-dark focus:outline-none focus:border-apple-blue focus:ring-2 focus:ring-apple-blue/20 transition"></textarea>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label for="form-availability" class="block text-xs font-semibold text-apple-dark mb-1">Availability</label>
+                <select id="form-availability" name="availability" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-medium text-apple-dark focus:outline-none focus:border-apple-blue transition">
+                  <option value="in stock">In Stock</option>
+                  <option value="out of stock">Out of Stock</option>
+                  <option value="preorder">Preorder</option>
+                </select>
+              </div>
+
+              <div>
+                <label for="form-condition" class="block text-xs font-semibold text-apple-dark mb-1">Condition</label>
+                <select id="form-condition" name="condition" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-medium text-apple-dark focus:outline-none focus:border-apple-blue transition">
+                  <option value="new">New</option>
+                  <option value="refurbished">Refurbished</option>
+                  <option value="used">Used</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Custom Labels Group Section -->
+          <div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-xs space-y-3">
+            <div class="flex items-center gap-2 text-apple-dark font-bold text-xs border-b border-slate-100 pb-2">
+              <i class="fa-solid fa-tags text-apple-blue"></i>
+              <span>Custom Labels</span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2.5">
+              <div>
+                <label class="block text-[10px] font-medium text-apple-gray mb-1">Custom Label 0</label>
+                <input type="text" id="form-custom_label_0" name="custom_label_0" placeholder="e.g. Flagship" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-apple-blue">
+              </div>
+              <div>
+                <label class="block text-[10px] font-medium text-apple-gray mb-1">Custom Label 1</label>
+                <input type="text" id="form-custom_label_1" name="custom_label_1" placeholder="e.g. Bestseller" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-apple-blue">
+              </div>
+              <div>
+                <label class="block text-[10px] font-medium text-apple-gray mb-1">Custom Label 2</label>
+                <input type="text" id="form-custom_label_2" name="custom_label_2" placeholder="e.g. Titanium" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-apple-blue">
+              </div>
+              <div>
+                <label class="block text-[10px] font-medium text-apple-gray mb-1">Custom Label 3</label>
+                <input type="text" id="form-custom_label_3" name="custom_label_3" placeholder="e.g. Holiday Sale" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-apple-blue">
+              </div>
+            </div>
+            <div>
+              <label class="block text-[10px] font-medium text-apple-gray mb-1">Custom Label 4</label>
+              <input type="text" id="form-custom_label_4" name="custom_label_4" placeholder="e.g. Free Apple TV+" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-apple-blue">
+            </div>
+          </div>
+
+          <!-- Variants Array Management Section -->
+          <div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-xs space-y-3.5">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+              <div class="flex items-center gap-2 text-apple-dark font-bold text-xs">
+                <i class="fa-solid fa-layer-group text-apple-blue"></i>
+                <span>Product Variants</span>
+              </div>
+              <button id="add-variant-btn" type="button" class="px-3 py-1.5 bg-apple-blue/10 hover:bg-apple-blue/20 text-apple-blue text-xs font-semibold rounded-xl active-press transition flex items-center gap-1">
+                <i class="fa-solid fa-plus text-[10px]"></i> Add Variant
+              </button>
+            </div>
+
+            <!-- Dynamic Variant List Wrapper -->
+            <div id="variants-container" class="space-y-4"></div>
+          </div>
+
+        </form>
+      </section>
+
+    </main>
+
+    <!-- Floating Action Button (FAB) on Dashboard -->
+    <button id="fab-add-btn" class="absolute bottom-20 right-5 z-30 w-14 h-14 bg-apple-blue text-white rounded-full shadow-lg shadow-apple-blue/30 flex items-center justify-center active-press hover:bg-apple-blueHover transition transform hover:scale-105" aria-label="Create Product">
+      <i class="fa-solid fa-plus text-xl"></i>
+    </button>
+
+    <!-- Floating Save Button Bar for Editor Page -->
+    <div id="floating-save-bar" class="hidden absolute bottom-0 left-0 right-0 z-30 p-4 bg-white/90 backdrop-blur-md border-t border-slate-200/80 flex items-center gap-3">
+      <button id="editor-cancel-btn" type="button" class="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-2xl text-xs active-press transition">
+        Cancel
+      </button>
+      <button id="editor-save-btn" type="button" class="flex-2 py-3 px-6 bg-apple-blue hover:bg-apple-blueHover text-white font-semibold rounded-2xl text-xs active-press transition shadow-md shadow-apple-blue/20 flex items-center justify-center gap-2">
+        <i class="fa-solid fa-floppy-disk"></i>
+        <span id="editor-save-text">Save Product</span>
+      </button>
+    </div>
+
+  </div>
+
+  <script>
+    /**
+     * Mobile First Product Management SPA
+     * Supabase Edge Function API Integration
+     */
+
+    // Supabase Edge Function Base Endpoint
+    const API_BASE_URL = 'https://jhpbtooefyzdndstlzva.supabase.co/functions/v1/crud';
+
+    // Global Application State
+    const state = {
+      currentPage: 'dashboard',  // 'dashboard' | 'editor'
+      editorMode: 'create',      // 'create' | 'edit'
+      selectedCategory: 'ALL',   // Active category tab
+      products: [],              // All fetched products
+      selectedProduct: null,     // Active product object in editor
+      variants: [],              // Active editable variants array
+      loading: false,            // API fetch loading indicator
+      saving: false,             // Save/Update action indicator
+      searchKeyword: '',         // Dashboard search query
+    };
+
+    // DOM Element References
+    const DOM = {
+      // Pages
+      pageDashboard: document.getElementById('page-dashboard'),
+      pageEditor: document.getElementById('page-editor'),
+      mainContent: document.getElementById('main-content'),
+
+      // Header Controls
+      headerTitle: document.getElementById('header-title'),
+      headerBackBtn: document.getElementById('header-back-btn'),
+      headerRefreshBtn: document.getElementById('header-refresh-btn'),
+      headerRefreshIcon: document.getElementById('header-refresh-icon'),
+      headerDeleteBtn: document.getElementById('header-delete-btn'),
+
+      // Dashboard View
+      categoryTabs: document.querySelectorAll('.category-tab'),
+      searchInput: document.getElementById('search-input'),
+      searchClearBtn: document.getElementById('search-clear-btn'),
+      productGrid: document.getElementById('product-grid'),
+      loadingSkeleton: document.getElementById('loading-skeleton'),
+      emptyState: document.getElementById('empty-state'),
+      emptyAddBtn: document.getElementById('empty-add-btn'),
+      fabAddBtn: document.getElementById('fab-add-btn'),
+
+      // Editor View & Form
+      productForm: document.getElementById('product-form'),
+      formItemGroupId: document.getElementById('form-item_group_id'),
+      formLink: document.getElementById('form-link'),
+      formInventory: document.getElementById('form-inventory'),
+      formCategory: document.getElementById('form-category'),
+      formTitle: document.getElementById('form-title'),
+      formDescription: document.getElementById('form-description'),
+      formAvailability: document.getElementById('form-availability'),
+      formCondition: document.getElementById('form-condition'),
+      formCustomLabel0: document.getElementById('form-custom_label_0'),
+      formCustomLabel1: document.getElementById('form-custom_label_1'),
+      formCustomLabel2: document.getElementById('form-custom_label_2'),
+      formCustomLabel3: document.getElementById('form-custom_label_3'),
+      formCustomLabel4: document.getElementById('form-custom_label_4'),
+      addVariantBtn: document.getElementById('add-variant-btn'),
+      variantsContainer: document.getElementById('variants-container'),
+
+      // Floating Action Save Bar
+      floatingSaveBar: document.getElementById('floating-save-bar'),
+      editorCancelBtn: document.getElementById('editor-cancel-btn'),
+      editorSaveBtn: document.getElementById('editor-save-btn'),
+      editorSaveText: document.getElementById('editor-save-text'),
+
+      // Toasts & Modal Dialog
+      toastContainer: document.getElementById('toast-container'),
+      customModal: document.getElementById('custom-modal'),
+      modalTitle: document.getElementById('modal-title'),
+      modalMessage: document.getElementById('modal-message'),
+      modalCancelBtn: document.getElementById('modal-cancel-btn'),
+      modalConfirmBtn: document.getElementById('modal-confirm-btn'),
+    };
+
+    /**
+     * STREAMING_CHUNK:API Layer Functions
+     * Supabase Edge Function Integration (GET, POST, PUT, DELETE)
+     */
+
+    // 1. Load All Products
+    async function apiLoadProducts() {
+      const response = await fetch(API_BASE_URL, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' }
+      });
+      if (!response.ok) throw new Error(`HTTP Error status ${response.status}`);
+      const result = await response.json();
+      return Array.isArray(result) ? result : (result.data || []);
+    }
+
+    // 2. Load Single Product by item_group_id
+    async function apiLoadProduct(id) {
+      const response = await fetch(`${API_BASE_URL}?id=${encodeURIComponent(id)}`, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' }
+      });
+      if (!response.ok) throw new Error(`Failed to load product ${id}`);
+      const result = await response.json();
+      return Array.isArray(result) ? result[0] : (result.data || result);
+    }
+
+    // 3. Create Product
+    async function apiCreateProduct(payload) {
+      const response = await fetch(API_BASE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!response.ok) throw new Error(`Failed to create product`);
+      return await response.json();
+    }
+
+    // 4. Update Product
+    async function apiUpdateProduct(id, payload) {
+      const response = await fetch(`${API_BASE_URL}?id=${encodeURIComponent(id)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!response.ok) throw new Error(`Failed to update product ${id}`);
+      return await response.json();
+    }
+
+    // 5. Delete Product
+    async function apiDeleteProduct(id) {
+      const response = await fetch(`${API_BASE_URL}?id=${encodeURIComponent(id)}`, {
+        method: 'DELETE'
+      });
+      if (!response.ok) throw new Error(`Failed to delete product ${id}`);
+      return await response.json();
+    }
+
+    /**
+     * STREAMING_CHUNK:UTILITIES & HELPERS
+     */
+
+    // Generate 12-char hex string (Primary key: item_group_id)
+    function generate12HexId() {
+      const array = new Uint8Array(6);
+      crypto.getRandomValues(array);
+      return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+    }
+
+    // Generate random inventory count between 24 and 231
+    function generateInventoryCount() {
+      return Math.floor(Math.random() * (231 - 24 + 1)) + 24;
+    }
+
+    // Format currency price display
+    function formatCurrency(val) {
+      const num = parseFloat(val);
+      if (isNaN(num)) return '$0';
+      return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(num);
+    }
+
+    /**
+     * STREAMING_CHUNK:SPA Navigation Logic
+     */
+
+    function showDashboardPage() {
+      state.currentPage = 'dashboard';
+      state.selectedProduct = null;
+      DOM.mainContent.scrollTop = 0;
+
+      DOM.pageDashboard.classList.remove('hidden');
+      DOM.pageEditor.classList.add('hidden');
+
+      // Header controls
+      DOM.headerTitle.textContent = 'Studio Catalog';
+      DOM.headerBackBtn.classList.add('hidden');
+      DOM.headerRefreshBtn.classList.remove('hidden');
+      DOM.headerDeleteBtn.classList.add('hidden');
+
+      // Floating action buttons
+      DOM.fabAddBtn.classList.remove('hidden');
+      DOM.floatingSaveBar.classList.add('hidden');
+
+      renderProductGrid();
+    }
+
+    function showEditorPage(mode = 'create', product = null) {
+      state.currentPage = 'editor';
+      state.editorMode = mode;
+      state.selectedProduct = product;
+      DOM.mainContent.scrollTop = 0;
+
+      DOM.pageDashboard.classList.add('hidden');
+      DOM.pageEditor.classList.remove('hidden');
+
+      // Header controls
+      DOM.headerTitle.textContent = mode === 'edit' ? 'Edit Product' : 'New Product';
+      DOM.headerBackBtn.classList.remove('hidden');
+      DOM.headerRefreshBtn.classList.add('hidden');
+
+      if (mode === 'edit') {
+        DOM.headerDeleteBtn.classList.remove('hidden');
+      } else {
+        DOM.headerDeleteBtn.classList.add('hidden');
+      }
+
+      // Floating action buttons
+      DOM.fabAddBtn.classList.add('hidden');
+      DOM.floatingSaveBar.classList.remove('hidden');
+
+      setupEditorForm(mode, product);
+    }
+
+    /**
+     * STREAMING_CHUNK:DASHBOARD & GRID RENDERER
+     */
+
+    function getFilteredProducts() {
+      let items = state.products;
+
+      // Filter by Category tab
+      if (state.selectedCategory !== 'ALL') {
+        items = items.filter(p => (p.category || '').toLowerCase() === state.selectedCategory.toLowerCase());
+      }
+
+      // Filter by Search Keyword
+      const kw = state.searchKeyword.trim().toLowerCase();
+      if (kw) {
+        items = items.filter(p => {
+          const t = (p.title || '').toLowerCase();
+          const c = (p.category || '').toLowerCase();
+          const id = (p.item_group_id || '').toLowerCase();
+          return t.includes(kw) || c.includes(kw) || id.includes(kw);
+        });
+      }
+
+      return items;
+    }
+
+    function renderProductGrid() {
+      const items = getFilteredProducts();
+      DOM.productGrid.innerHTML = '';
+
+      if (state.searchKeyword) {
+        DOM.searchClearBtn.classList.remove('hidden');
+      } else {
+        DOM.searchClearBtn.classList.add('hidden');
+      }
+
+      if (items.length === 0) {
+        DOM.emptyState.classList.remove('hidden');
+        return;
+      }
+
+      DOM.emptyState.classList.add('hidden');
+
+      items.forEach(product => {
+        // First variant image link or placeholder
+        const firstVariant = Array.isArray(product.variants) && product.variants.length > 0 ? product.variants[0] : null;
+        const mainImage = (firstVariant && firstVariant.image_link) ? firstVariant.image_link : (product.link || '');
+        const title = product.title || 'Untitled Product';
+        const category = product.category || 'General';
+        const price = firstVariant ? (firstVariant.sale_price || firstVariant.price) : 0;
+
+        const card = document.createElement('div');
+        card.className = 'bg-white p-2.5 rounded-3xl border border-slate-200/80 shadow-xs hover:shadow-md transition active-press cursor-pointer flex flex-col justify-between group';
+
+        card.innerHTML = `
+          <!-- 1:1 Aspect Ratio Image Wrapper -->
+          <div class="relative w-full aspect-square bg-slate-100 rounded-2xl overflow-hidden mb-2 border border-slate-100 flex items-center justify-center">
+            <img src="${mainImage}" alt="${title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+            <div class="hidden w-full h-full bg-slate-100 flex flex-col items-center justify-center text-apple-gray text-xs p-2 text-center">
+              <i class="fa-solid fa-image text-2xl mb-1"></i>
+              <span>No Image</span>
+            </div>
+            <span class="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase bg-white/90 backdrop-blur-xs text-apple-dark shadow-xs border border-slate-200/50">${category}</span>
+          </div>
+
+          <!-- Product Details -->
+          <div class="px-1 flex-1 flex flex-col justify-between">
+            <h3 class="text-xs font-bold text-apple-dark line-clamp-2 leading-tight mb-1">${title}</h3>
+            <div class="flex items-center justify-between mt-1">
+              <span class="text-xs font-extrabold text-apple-blue">${price ? formatCurrency(price) : 'No Price'}</span>
+              <span class="text-[10px] text-apple-gray font-mono">${product.inventory ?? 0} in stock</span>
+            </div>
+          </div>
+        `;
+
+        card.addEventListener('click', () => {
+          showEditorPage('edit', product);
+        });
+
+        DOM.productGrid.appendChild(card);
+      });
+    }
+
+    /**
+     * STREAMING_CHUNK:EDITOR FORM & VARIANT DYNAMIC ENGINE
+     */
+
+    function setupEditorForm(mode, product = null) {
+      DOM.productForm.reset();
+      DOM.variantsContainer.innerHTML = '';
+
+      if (mode === 'edit' && product) {
+        DOM.editorSaveText.textContent = 'Update Product';
+
+        const itemId = product.item_group_id || generate12HexId();
+        DOM.formItemGroupId.value = itemId;
+        DOM.formLink.value = product.link || `/${itemId}`;
+        DOM.formInventory.value = product.inventory ?? generateInventoryCount();
+
+        DOM.formCategory.value = product.category || 'iPhone';
+        DOM.formTitle.value = product.title || '';
+        DOM.formDescription.value = product.description || '';
+        DOM.formAvailability.value = product.availability || 'in stock';
+        DOM.formCondition.value = product.condition || 'new';
+
+        DOM.formCustomLabel0.value = product.custom_label_0 || '';
+        DOM.formCustomLabel1.value = product.custom_label_1 || '';
+        DOM.formCustomLabel2.value = product.custom_label_2 || '';
+        DOM.formCustomLabel3.value = product.custom_label_3 || '';
+        DOM.formCustomLabel4.value = product.custom_label_4 || '';
+
+        // Load variants
+        state.variants = Array.isArray(product.variants) ? JSON.parse(JSON.stringify(product.variants)) : [];
+        if (state.variants.length === 0) {
+          addDefaultVariant();
+        } else {
+          renderVariants();
+        }
+      } else {
+        // Create Mode
+        DOM.editorSaveText.textContent = 'Save Product';
+
+        const newId = generate12HexId();
+        DOM.formItemGroupId.value = newId;
+        DOM.formLink.value = `/${newId}`;
+        DOM.formInventory.value = generateInventoryCount();
+
+        DOM.formCategory.value = state.selectedCategory !== 'ALL' ? state.selectedCategory : 'iPhone';
+        
+        state.variants = [];
+        addDefaultVariant();
+      }
+    }
+
+    // Auto update variant IDs when color, size, or item_group_id changes
+    function computeVariantId(itemGroupId, color, size) {
+      const cleanColor = (color || 'Default').trim().replace(/\s+/g, '');
+      const cleanSize = (size || 'Standard').trim().replace(/\s+/g, '');
+      return `/${itemGroupId}/${cleanColor}-${cleanSize}`;
+    }
+
+    function addDefaultVariant() {
+      const itemGroupId = DOM.formItemGroupId.value;
+      const v = {
+        id: computeVariantId(itemGroupId, 'Space Gray', '256GB'),
+        color: 'Space Gray',
+        size: '256GB',
+        price: '999',
+        sale_price: '899',
+        image_link: 'https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?w=500&q=80',
+        additional_image_link: []
+      };
+      state.variants.push(v);
+      renderVariants();
+    }
+
+    function renderVariants() {
+      DOM.variantsContainer.innerHTML = '';
+
+      state.variants.forEach((variant, vIdx) => {
+        const itemGroupId = DOM.formItemGroupId.value;
+        variant.id = computeVariantId(itemGroupId, variant.color, variant.size);
+
+        const card = document.createElement('div');
+        card.className = 'bg-slate-50 border border-slate-200 rounded-2xl p-3.5 space-y-3 relative';
+
+        card.innerHTML = `
+          <!-- Variant Card Header -->
+          <div class="flex items-center justify-between border-b border-slate-200/80 pb-2">
+            <div>
+              <span class="text-[10px] font-bold text-apple-gray uppercase tracking-wider">Variant #${vIdx + 1}</span>
+              <p class="font-mono text-[10px] font-semibold text-apple-blue truncate max-w-[200px]">${variant.id}</p>
+            </div>
+            ${state.variants.length > 1 ? `
+              <button type="button" class="btn-remove-variant p-1 text-apple-red hover:text-red-700 active-press" data-index="${vIdx}" title="Remove Variant">
+                <i class="fa-solid fa-trash-can text-xs"></i>
+              </button>
+            ` : ''}
+          </div>
+
+          <!-- Color & Size inputs -->
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div>
+              <label class="block font-semibold text-apple-dark mb-1">Color</label>
+              <input type="text" value="${variant.color || ''}" class="v-color w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-xl text-xs" placeholder="e.g. Blue" data-index="${vIdx}">
+            </div>
+            <div>
+              <label class="block font-semibold text-apple-dark mb-1">Size / Storage</label>
+              <input type="text" value="${variant.size || ''}" class="v-size w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-xl text-xs" placeholder="e.g. 256GB" data-index="${vIdx}">
+            </div>
+          </div>
+
+          <!-- Price & Sale Price inputs -->
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div>
+              <label class="block font-semibold text-apple-dark mb-1">Price ($)</label>
+              <input type="number" value="${variant.price || ''}" class="v-price w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-xl text-xs" placeholder="999" data-index="${vIdx}">
+            </div>
+            <div>
+              <label class="block font-semibold text-apple-dark mb-1">Sale Price ($)</label>
+              <input type="number" value="${variant.sale_price || ''}" class="v-sale-price w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-xl text-xs" placeholder="899" data-index="${vIdx}">
+            </div>
+          </div>
+
+          <!-- Main Image Link -->
+          <div>
+            <label class="block text-xs font-semibold text-apple-dark mb-1">Main Image URL</label>
+            <input type="url" value="${variant.image_link || ''}" class="v-image-link w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-mono" placeholder="https://..." data-index="${vIdx}">
+          </div>
+
+          <!-- Dynamic Additional Images Array -->
+          <div class="pt-1 border-t border-slate-200/60">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-[11px] font-bold text-apple-dark">Additional Image URLs</span>
+              <button type="button" class="btn-add-addl-img text-[10px] font-semibold text-apple-blue hover:underline" data-index="${vIdx}">
+                + Add Link
+              </button>
+            </div>
+            <div class="addl-img-list space-y-1.5" data-index="${vIdx}">
+              ${(Array.isArray(variant.additional_image_link) ? variant.additional_image_link : []).map((imgUrl, imgIdx) => `
+                <div class="flex items-center gap-1.5">
+                  <input type="url" value="${imgUrl}" class="addl-img-input flex-1 px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-[11px] font-mono" placeholder="https://..." data-vindex="${vIdx}" data-imgindex="${imgIdx}">
+                  <button type="button" class="btn-remove-addl-img p-1 text-apple-red hover:text-red-700" data-vindex="${vIdx}" data-imgindex="${imgIdx}">
+                    <i class="fa-solid fa-xmark text-xs"></i>
+                  </button>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+
+        // Attach event listeners for variant input changes
+        card.querySelector('.v-color').addEventListener('input', (e) => {
+          variant.color = e.target.value;
+          variant.id = computeVariantId(itemGroupId, variant.color, variant.size);
+          card.querySelector('.font-mono.text-apple-blue').textContent = variant.id;
+        });
+
+        card.querySelector('.v-size').addEventListener('input', (e) => {
+          variant.size = e.target.value;
+          variant.id = computeVariantId(itemGroupId, variant.color, variant.size);
+          card.querySelector('.font-mono.text-apple-blue').textContent = variant.id;
+        });
+
+        card.querySelector('.v-price').addEventListener('input', (e) => {
+          variant.price = e.target.value;
+        });
+
+        card.querySelector('.v-sale-price').addEventListener('input', (e) => {
+          variant.sale_price = e.target.value;
+        });
+
+        card.querySelector('.v-image-link').addEventListener('input', (e) => {
+          variant.image_link = e.target.value;
+        });
+
+        // Additional Image Listeners
+        const addBtn = card.querySelector('.btn-add-addl-img');
+        if (addBtn) {
+          addBtn.addEventListener('click', () => {
+            if (!Array.isArray(variant.additional_image_link)) {
+              variant.additional_image_link = [];
+            }
+            variant.additional_image_link.push('');
+            renderVariants();
+          });
+        }
+
+        card.querySelectorAll('.addl-img-input').forEach(inp => {
+          inp.addEventListener('input', (e) => {
+            const imgIdx = parseInt(e.target.dataset.imgindex, 10);
+            variant.additional_image_link[imgIdx] = e.target.value;
+          });
+        });
+
+        card.querySelectorAll('.btn-remove-addl-img').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const imgIdx = parseInt(e.currentTarget.dataset.imgindex, 10);
+            variant.additional_image_link.splice(imgIdx, 1);
+            renderVariants();
+          });
+        });
+
+        const removeVarBtn = card.querySelector('.btn-remove-variant');
+        if (removeVarBtn) {
+          removeVarBtn.addEventListener('click', () => {
+            state.variants.splice(vIdx, 1);
+            renderVariants();
+          });
+        }
+
+        DOM.variantsContainer.appendChild(card);
+      });
+    }
+
+    /**
+     * STREAMING_CHUNK:CRUD OPERATIONS & ACTION HANDLERS
+     */
+
+    async function handleRefreshProducts() {
+      if (state.loading) return;
+
+      state.loading = true;
+      DOM.headerRefreshBtn.disabled = true;
+      DOM.headerRefreshIcon.classList.add('fa-spin');
+      DOM.loadingSkeleton.classList.remove('hidden');
+      DOM.productGrid.classList.add('hidden');
+      DOM.emptyState.classList.add('hidden');
+
+      try {
+        const items = await apiLoadProducts();
+        state.products = items;
+        renderProductGrid();
+        showToast('Catalog synchronized', 'success');
+      } catch (error) {
+        showToast('Failed to load products from Supabase', 'error');
+      } finally {
+        state.loading = false;
+        DOM.headerRefreshBtn.disabled = false;
+        DOM.headerRefreshIcon.classList.remove('fa-spin');
+        DOM.loadingSkeleton.classList.add('hidden');
+        DOM.productGrid.classList.remove('hidden');
+      }
+    }
+
+    function buildPayloadFromForm() {
+      const itemGroupId = DOM.formItemGroupId.value;
+
+      // Ensure every variant ID is clean and updated
+      const cleanVariants = state.variants.map(v => ({
+        ...v,
+        id: computeVariantId(itemGroupId, v.color, v.size),
+        additional_image_link: Array.isArray(v.additional_image_link) ? v.additional_image_link.filter(url => url.trim() !== '') : []
+      }));
+
+      return {
+        item_group_id: itemGroupId,
+        title: DOM.formTitle.value.trim(),
+        description: DOM.formDescription.value.trim(),
+        category: DOM.formCategory.value,
+        availability: DOM.formAvailability.value,
+        condition: DOM.formCondition.value,
+        inventory: parseInt(DOM.formInventory.value, 10) || 50,
+        link: `/${itemGroupId}`,
+        custom_label_0: DOM.formCustomLabel0.value.trim(),
+        custom_label_1: DOM.formCustomLabel1.value.trim(),
+        custom_label_2: DOM.formCustomLabel2.value.trim(),
+        custom_label_3: DOM.formCustomLabel3.value.trim(),
+        custom_label_4: DOM.formCustomLabel4.value.trim(),
+        variants: cleanVariants,
+        updated_at: new Date().toISOString()
+      };
+    }
+
+    async function handleSaveProduct() {
+      if (!DOM.productForm.checkValidity()) {
+        DOM.productForm.reportValidity();
+        return;
+      }
+
+      const payload = buildPayloadFromForm();
+      const isEditing = state.editorMode === 'edit';
+      const targetId = payload.item_group_id;
+
+      state.saving = true;
+      DOM.editorSaveBtn.disabled = true;
+      DOM.editorSaveText.textContent = isEditing ? 'Updating...' : 'Creating...';
+
+      try {
+        if (isEditing) {
+          await apiUpdateProduct(targetId, payload);
+          showToast('Product updated successfully', 'success');
+        } else {
+          await apiCreateProduct(payload);
+          showToast('Product created successfully', 'success');
+        }
+
+        await handleRefreshProducts();
+        showDashboardPage();
+      } catch (error) {
+        showToast(`Save failed: ${error.message || 'Error occurred'}`, 'error');
+      } finally {
+        state.saving = false;
+        DOM.editorSaveBtn.disabled = false;
+        DOM.editorSaveText.textContent = isEditing ? 'Update Product' : 'Save Product';
+      }
+    }
+
+    function promptDeleteProduct() {
+      if (!state.selectedProduct) return;
+      const id = state.selectedProduct.item_group_id;
+      const title = state.selectedProduct.title || 'this product';
+
+      showModal({
+        title: 'Delete Product',
+        message: `Are you sure you want to delete "${title}"? This will invoke Supabase Edge Function DELETE.`,
+        confirmText: 'Delete',
+        onConfirm: async () => {
+          try {
+            await apiDeleteProduct(id);
+            showToast('Product deleted from Supabase', 'success');
+            await handleRefreshProducts();
+            showDashboardPage();
+          } catch (error) {
+            showToast('Failed to delete product', 'error');
+          }
+        }
+      });
+    }
+
+    /**
+     * STREAMING_CHUNK:UI FEEDBACK (Toast & Modal)
+     */
+
+    function showToast(message, type = 'info') {
+      const toast = document.createElement('div');
+      
+      const colors = {
+        success: 'bg-apple-dark text-white shadow-xl',
+        error: 'bg-apple-red text-white shadow-xl',
+        info: 'bg-slate-800 text-white shadow-xl',
+      };
+
+      const icons = {
+        success: 'fa-circle-check text-apple-green',
+        error: 'fa-circle-xmark text-white',
+        info: 'fa-circle-info text-apple-blue',
+      };
+
+      toast.className = `pointer-events-auto px-4 py-3 rounded-2xl text-xs font-semibold flex items-center gap-2.5 transform transition-all duration-300 translate-y-[-10px] opacity-0 ${colors[type] || colors.info}`;
+      toast.innerHTML = `<i class="fa-solid ${icons[type]} text-sm"></i><span>${message}</span>`;
+
+      DOM.toastContainer.appendChild(toast);
+
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-[-10px]', 'opacity-0');
+      });
+
+      setTimeout(() => {
+        toast.classList.add('translate-y-[-10px]', 'opacity-0');
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    function showModal({ title, message, confirmText = 'Confirm', onConfirm }) {
+      DOM.modalTitle.textContent = title;
+      DOM.modalMessage.textContent = message;
+      DOM.modalConfirmBtn.textContent = confirmText;
+
+      DOM.customModal.classList.remove('hidden');
+
+      const handleConfirm = () => {
+        closeModal();
+        if (typeof onConfirm === 'function') onConfirm();
+      };
+
+      const closeModal = () => {
+        DOM.customModal.classList.add('hidden');
+        DOM.modalConfirmBtn.removeEventListener('click', handleConfirm);
+        DOM.modalCancelBtn.removeEventListener('click', closeModal);
+      };
+
+      DOM.modalConfirmBtn.addEventListener('click', handleConfirm);
+      DOM.modalCancelBtn.addEventListener('click', closeModal);
+    }
+
+    /**
+     * STREAMING_CHUNK:INITIALIZATION & EVENT LISTENERS
+     */
+
+    function initEventListeners() {
+      // Header controls
+      DOM.headerRefreshBtn.addEventListener('click', handleRefreshProducts);
+      DOM.headerBackBtn.addEventListener('click', showDashboardPage);
+      DOM.headerDeleteBtn.addEventListener('click', promptDeleteProduct);
+
+      // Category filter tabs
+      DOM.categoryTabs.forEach(tab => {
+        tab.addEventListener('click', (e) => {
+          DOM.categoryTabs.forEach(t => {
+            t.className = 'category-tab px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition bg-white text-apple-gray hover:text-apple-dark border border-slate-200';
+          });
+          e.currentTarget.className = 'category-tab active px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition bg-apple-dark text-white shadow-xs';
+
+          state.selectedCategory = e.currentTarget.dataset.category;
+          renderProductGrid();
+        });
+      });
+
+      // Search input filtering
+      DOM.searchInput.addEventListener('input', (e) => {
+        state.searchKeyword = e.target.value;
+        renderProductGrid();
+      });
+
+      DOM.searchClearBtn.addEventListener('click', () => {
+        DOM.searchInput.value = '';
+        state.searchKeyword = '';
+        renderProductGrid();
+      });
+
+      // Floating / Form Save Buttons
+      DOM.fabAddBtn.addEventListener('click', () => showEditorPage('create'));
+      DOM.emptyAddBtn.addEventListener('click', () => showEditorPage('create'));
+      DOM.editorCancelBtn.addEventListener('click', showDashboardPage);
+      DOM.editorSaveBtn.addEventListener('click', handleSaveProduct);
+
+      // Add variant button inside form
+      DOM.addVariantBtn.addEventListener('click', () => {
+        const itemGroupId = DOM.formItemGroupId.value;
+        state.variants.push({
+          id: computeVariantId(itemGroupId, 'Default', `${state.variants.length + 1}`),
+          color: 'New Color',
+          size: 'Standard',
+          price: '999',
+          sale_price: '',
+          image_link: '',
+          additional_image_link: []
+        });
+        renderVariants();
+      });
+    }
+
+    // Startup Bootstrap
+    window.onload = function () {
+      initEventListeners();
+      showDashboardPage();
+      handleRefreshProducts();
+    };
+  </script>
+</body>
+</html>
