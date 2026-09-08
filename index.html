@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>React CDN App</title>
+
+  <!-- React -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+
+  <!-- Babel untuk JSX -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    #root {
+      min-height: 100vh;
+    }
+
+    .app {
+      min-height: 100vh;
+      padding-bottom: 60px;
+    }
+
+    header {
+      padding: 16px;
+      border-bottom: 1px solid #ddd;
+    }
+
+    main {
+      padding: 20px;
+    }
+
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      background: white;
+      border-top: 1px solid #ddd;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="root"></div>
+
+  <!-- App.jsx -->
+  <script type="text/babel">
+    const { useState } = React;
+
+    function Header() {
+      return (
+        <header>
+          <h2>My App</h2>
+        </header>
+      );
+    }
+
+    function Main() {
+      return (
+        <main>
+          <h1>Hello React 👋</h1>
+          <p>Ini adalah Main Content.</p>
+        </main>
+      );
+    }
+
+    function BottomNav() {
+      const [active, setActive] = useState("Home");
+
+      return (
+        <nav className="bottom-nav">
+          {["Home", "Search", "Profile"].map((item) => (
+            <button
+              key={item}
+              onClick={() => setActive(item)}
+            >
+              {item}
+              {active === item && " ✓"}
+            </button>
+          ))}
+        </nav>
+      );
+    }
+
+    function App() {
+      return (
+        <div className="app">
+          <Header />
+          <Main />
+          <BottomNav />
+        </div>
+      );
+    }
+
+    ReactDOM
+      .createRoot(document.getElementById("root"))
+      .render(<App />);
+  </script>
+
+</body>
+</html>
