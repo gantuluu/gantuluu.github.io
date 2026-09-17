@@ -54,6 +54,16 @@ function Icon({ name, size = "icon" }) {
   return <i data-lucide={name} className={size} aria-hidden="true" />;
 }
 
+function refreshLucideIcons() {
+  if (window.lucide) {
+    window.lucide.createIcons({
+      attrs: {
+        "stroke-width": 2,
+      },
+    });
+  }
+}
+
 function App() {
   return <AppShell />;
 }
@@ -74,9 +84,7 @@ function AppShell() {
   );
 
   useEffect(() => {
-    if (window.lucide) {
-      window.lucide.createIcons({ attrs: { "stroke-width": 2 } });
-    }
+    refreshLucideIcons();
   });
 
   function openApplication(product) {
@@ -103,7 +111,6 @@ function AppShell() {
     <div className="app-shell">
       <div className="app">
         <Header />
-
         <main className="app-main">
           {activeTab === "home" && (
             <HomeView
@@ -118,9 +125,7 @@ function AppShell() {
           )}
           {activeTab === "profile" && <ProfileView />}
         </main>
-
         <BottomNav activeTab={activeTab} onChange={setActiveTab} />
-
         <Overlay
           selectedProduct={selectedProduct}
           onClose={() => setSelectedProduct(null)}
@@ -132,16 +137,12 @@ function AppShell() {
 }
 
 function Header() {
-  function handleNotifications() {
-    alert("No new notifications");
-  }
-
   return (
     <header className="topbar">
       <div className="brand">Loan Apps</div>
       <button
         className="topbar-action"
-        onClick={handleNotifications}
+        onClick={() => alert("No new notifications")}
         aria-label="Notifications"
       >
         <Icon name="bell" />
@@ -211,8 +212,22 @@ function HomeView({ activeLoans, outstanding, onApply, onViewLoans }) {
 }
 
 function LoanProductCard({ product, onApply }) {
+  function handleKeyDown(event) {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      onApply();
+    }
+  }
+
   return (
-    <article className="card product-card" onClick={onApply}>
+    <article
+      className="card product-card"
+      onClick={onApply}
+      onKeyDown={handleKeyDown}
+      role="button"
+      tabIndex="0"
+      aria-label={`Apply for ${product.name}`}
+    >
       <div className="card-top">
         <div className="icon-box" aria-hidden="true">
           <Icon name={product.icon} />
@@ -328,7 +343,9 @@ function ProfileView() {
   return (
     <div className="page">
       <div className="card profile">
-        <div className="avatar">LG</div>
+        <div className="avatar" aria-hidden="true">
+          <Icon name="user-round" size="icon-lg" />
+        </div>
         <h1>Account</h1>
         <p>Manage your personal information and preferences.</p>
       </div>
@@ -397,7 +414,6 @@ function LoanApplicationSheet({ product, onClose, onSubmit }) {
 
   function handleSubmit() {
     const value = Number(amount);
-
     if (!Number.isFinite(value) || value <= 0) {
       setError("Enter a valid loan amount.");
       return;
