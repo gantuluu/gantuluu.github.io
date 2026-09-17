@@ -2,117 +2,134 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#f7f7f8" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Loan Apps" />
+  <meta name="description" content="Mobile loan application interface built with React." />
+  <title>Loan Apps</title>
 
-  <title>React CDN App</title>
-
-  <!-- React -->
-  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-
-  <!-- Babel untuk JSX -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
   <style>
-    * {
-      box-sizing: border-box;
+    :root {
+      color-scheme: light;
+      --bg: #f7f7f8;
+      --surface: #ffffff;
+      --text: #111111;
+      --muted: #737373;
+      --line: #e7e7e9;
+      --soft: #f1f1f3;
+      --accent: #111111;
+      --success: #18794e;
+      --success-bg: #eaf7f0;
+      --danger: #b42318;
+      --radius-lg: 22px;
+      --radius-md: 16px;
     }
 
+    * { box-sizing: border-box; }
+    html, body, #root { width: 100%; height: 100%; margin: 0; }
     body {
-      margin: 0;
-      font-family: Arial, sans-serif;
+      overflow: hidden;
+      background: #e9e9eb;
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", sans-serif;
+      -webkit-font-smoothing: antialiased;
     }
+    button, input, select { font: inherit; }
+    button { -webkit-tap-highlight-color: transparent; }
+    button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid #b8b8bd; outline-offset: 2px; }
 
-    #root {
-      min-height: 100vh;
-    }
+    .app-shell { width: 100%; height: 100%; display: flex; justify-content: center; }
+    .app { width: 100%; max-width: 500px; height: 100%; display: flex; flex-direction: column; overflow: hidden; background: var(--bg); }
+    .app-main { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+    .page { min-height: 100%; padding-bottom: 24px; }
 
-    .app {
-      min-height: 100vh;
-      padding-bottom: 60px;
-    }
+    .topbar { min-height: 64px; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; background: var(--surface); border-bottom: 1px solid var(--line); }
+    .brand { font-size: 18px; font-weight: 800; letter-spacing: -.3px; }
+    .topbar-action { width: 38px; height: 38px; border: 0; border-radius: 50%; background: var(--soft); color: var(--text); cursor: pointer; }
 
-    header {
-      padding: 16px;
-      border-bottom: 1px solid #ddd;
-    }
+    .hero { padding: 28px 20px 24px; background: var(--accent); color: #fff; border-radius: 0 0 28px 28px; }
+    .eyebrow { margin: 0 0 8px; font-size: 12px; opacity: .62; }
+    .hero h1 { margin: 0; font-size: 30px; line-height: 1.08; letter-spacing: -1px; }
+    .hero p { margin: 10px 0 0; color: #c9c9cc; font-size: 14px; line-height: 1.5; }
 
-    main {
-      padding: 20px;
-    }
+    .section { padding: 20px; }
+    .section-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+    .section-title { margin: 0; font-size: 18px; letter-spacing: -.3px; }
+    .section-link { border: 0; background: transparent; color: var(--muted); cursor: pointer; font-size: 13px; }
 
-    .bottom-nav {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 60px;
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      background: white;
-      border-top: 1px solid #ddd;
-    }
+    .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .stat { padding: 16px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-md); }
+    .stat-label { color: var(--muted); font-size: 11px; }
+    .stat-value { margin-top: 5px; font-size: 17px; font-weight: 750; }
+
+    .stack { display: grid; gap: 12px; }
+    .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); }
+    .product-card { padding: 18px; cursor: pointer; transition: transform .12s ease; }
+    .product-card:active { transform: scale(.99); }
+    .card-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .icon-box { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 13px; background: var(--soft); font-size: 20px; }
+    .badge { padding: 5px 9px; border-radius: 999px; background: var(--soft); color: #555; font-size: 11px; font-weight: 650; }
+    .badge.success { color: var(--success); background: var(--success-bg); }
+    .card-title { margin: 14px 0 4px; font-size: 16px; }
+    .card-description { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.45; }
+    .meta-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 16px; }
+    .meta-label { color: #909094; font-size: 10px; }
+    .meta-value { margin-top: 3px; font-size: 12px; font-weight: 700; }
+
+    .loan-card { padding: 18px; }
+    .loan-card + .loan-card { margin-top: 12px; }
+    .loan-number { color: var(--muted); font-size: 11px; }
+    .loan-amount { margin: 5px 0 0; font-size: 24px; font-weight: 800; letter-spacing: -.6px; }
+    .progress { height: 7px; margin: 16px 0 12px; overflow: hidden; border-radius: 999px; background: var(--soft); }
+    .progress > span { display: block; height: 100%; border-radius: inherit; background: var(--accent); }
+    .detail-row { display: flex; justify-content: space-between; gap: 16px; padding: 9px 0; font-size: 13px; }
+    .detail-row + .detail-row { border-top: 1px solid #f0f0f1; }
+    .muted { color: var(--muted); }
+    .strong { font-weight: 700; text-align: right; }
+
+    .primary-button { width: 100%; min-height: 50px; border: 0; border-radius: 15px; background: var(--accent); color: #fff; font-weight: 700; cursor: pointer; }
+    .secondary-button { width: 100%; min-height: 48px; border: 1px solid var(--line); border-radius: 15px; background: var(--surface); color: var(--text); font-weight: 650; cursor: pointer; }
+
+    .profile { margin: 20px; padding: 20px; }
+    .avatar { width: 58px; height: 58px; display: grid; place-items: center; margin-bottom: 14px; border-radius: 50%; background: var(--accent); color: #fff; font-weight: 800; }
+    .profile h1 { margin: 0; font-size: 20px; }
+    .profile p { margin: 5px 0 0; color: var(--muted); font-size: 13px; }
+    .list { margin: 0 20px; overflow: hidden; }
+    .list-item { width: 100%; min-height: 56px; padding: 0 16px; display: flex; align-items: center; justify-content: space-between; border: 0; border-bottom: 1px solid #eeeeef; background: var(--surface); text-align: left; cursor: pointer; }
+    .list-item:first-child { border-radius: 18px 18px 0 0; }
+    .list-item:last-child { border-bottom: 0; border-radius: 0 0 18px 18px; }
+    .arrow { color: #999; font-size: 18px; }
+
+    .bottom-nav { flex: 0 0 72px; display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--line); background: rgba(255,255,255,.96); backdrop-filter: blur(18px); padding-bottom: env(safe-area-inset-bottom); }
+    .nav-button { border: 0; background: transparent; color: #858589; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; cursor: pointer; }
+    .nav-button.active { color: var(--text); font-weight: 700; }
+    .nav-icon { font-size: 20px; line-height: 1; }
+    .nav-label { font-size: 11px; }
+
+    .overlay { position: fixed; inset: 0; z-index: 100; display: flex; align-items: flex-end; justify-content: center; background: rgba(0,0,0,.45); }
+    .sheet { width: 100%; max-width: 500px; max-height: 92%; overflow-y: auto; padding: 12px 20px calc(22px + env(safe-area-inset-bottom)); border-radius: 26px 26px 0 0; background: var(--surface); }
+    .handle { width: 42px; height: 5px; margin: 0 auto 18px; border-radius: 99px; background: #ddd; }
+    .sheet h2 { margin: 0; font-size: 21px; }
+    .sheet-subtitle { margin: 6px 0 20px; color: var(--muted); font-size: 13px; line-height: 1.45; }
+    .field { margin-bottom: 16px; }
+    .field label { display: block; margin-bottom: 7px; font-size: 12px; font-weight: 700; }
+    .field input, .field select { width: 100%; height: 50px; padding: 0 14px; border: 1px solid #dcdcdf; border-radius: 14px; background: #fff; color: var(--text); outline: none; }
+    .field input:focus, .field select:focus { border-color: #999; }
+    .sheet-actions { display: grid; gap: 8px; margin-top: 4px; }
+    .empty { padding: 42px 20px; text-align: center; color: var(--muted); }
+
+    @media (min-width: 501px) { .app { box-shadow: 0 0 42px rgba(0,0,0,.09); } }
+    @media (prefers-reduced-motion: reduce) { .product-card { transition: none; } }
   </style>
 </head>
-
 <body>
-
   <div id="root"></div>
-
-  <!-- App.jsx -->
-  <script type="text/babel">
-    const { useState } = React;
-
-    function Header() {
-      return (
-        <header>
-          <h2>My App</h2>
-        </header>
-      );
-    }
-
-    function Main() {
-      return (
-        <main>
-          <h1>Hello React 👋</h1>
-          <p>Ini adalah Main Content.</p>
-        </main>
-      );
-    }
-
-    function BottomNav() {
-      const [active, setActive] = useState("Home");
-
-      return (
-        <nav className="bottom-nav">
-          {["Home", "Search", "Profile"].map((item) => (
-            <button
-              key={item}
-              onClick={() => setActive(item)}
-            >
-              {item}
-              {active === item && " ✓"}
-            </button>
-          ))}
-        </nav>
-      );
-    }
-
-    function App() {
-      return (
-        <div className="app">
-          <Header />
-          <Main />
-          <BottomNav />
-        </div>
-      );
-    }
-
-    ReactDOM
-      .createRoot(document.getElementById("root"))
-      .render(<App />);
-  </script>
-
+  <script type="text/babel" src="./App.jsx"></script>
 </body>
 </html>
