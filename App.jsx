@@ -51,6 +51,10 @@ function formatIDR(value) {
 }
 
 function App() {
+  return <AppShell />;
+}
+
+function AppShell() {
   const [activeTab, setActiveTab] = useState("home");
   const [loans, setLoans] = useState(INITIAL_LOANS);
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -88,9 +92,11 @@ function App() {
   return (
     <div className="app-shell">
       <div className="app">
+        <Header />
+
         <main className="app-main">
           {activeTab === "home" && (
-            <HomePage
+            <HomeView
               activeLoans={activeLoans}
               outstanding={outstanding}
               onApply={openApplication}
@@ -99,49 +105,59 @@ function App() {
           )}
 
           {activeTab === "loans" && (
-            <LoansPage
+            <LoansView
               loans={loans}
               onApply={() => setActiveTab("home")}
             />
           )}
 
-          {activeTab === "profile" && <ProfilePage />}
+          {activeTab === "profile" && <ProfileView />}
         </main>
 
         <BottomNav activeTab={activeTab} onChange={setActiveTab} />
 
-        {selectedProduct && (
-          <LoanApplicationSheet
-            product={selectedProduct}
-            onClose={() => setSelectedProduct(null)}
-            onSubmit={submitApplication}
-          />
-        )}
+        <Overlay
+          selectedProduct={selectedProduct}
+          onClose={() => setSelectedProduct(null)}
+          onSubmit={submitApplication}
+        />
       </div>
     </div>
   );
 }
 
-function TopBar({ action }) {
+function Header() {
+  function handleNotifications() {
+    alert("No new notifications");
+  }
+
   return (
     <header className="topbar">
       <div className="brand">Loan Apps</div>
-      <button className="topbar-action" onClick={action} aria-label="Notifications">
+      <button
+        className="topbar-action"
+        onClick={handleNotifications}
+        aria-label="Notifications"
+      >
         ♢
       </button>
     </header>
   );
 }
 
-function HomePage({ activeLoans, outstanding, onApply, onViewLoans }) {
+function HomeView({ activeLoans, outstanding, onApply, onViewLoans }) {
   return (
     <div className="page">
-      <TopBar action={() => alert("No new notifications")} />
-
       <section className="hero">
         <p className="eyebrow">WELCOME BACK</p>
-        <h1>Simple financing,<br />made easier.</h1>
-        <p>Manage your loans and explore financing options from one simple mobile app.</p>
+        <h1>
+          Simple financing,
+          <br />
+          made easier.
+        </h1>
+        <p>
+          Manage your loans and explore financing options from one simple mobile app.
+        </p>
       </section>
 
       <section className="section">
@@ -160,7 +176,9 @@ function HomePage({ activeLoans, outstanding, onApply, onViewLoans }) {
       <section className="section">
         <div className="section-header">
           <h2 className="section-title">My Loans</h2>
-          <button className="section-link" onClick={onViewLoans}>View all</button>
+          <button className="section-link" onClick={onViewLoans}>
+            View all
+          </button>
         </div>
 
         {activeLoans.length === 0 ? (
@@ -193,7 +211,9 @@ function LoanProductCard({ product, onApply }) {
   return (
     <article className="card product-card" onClick={onApply}>
       <div className="card-top">
-        <div className="icon-box" aria-hidden="true">{product.icon}</div>
+        <div className="icon-box" aria-hidden="true">
+          {product.icon}
+        </div>
         <span className="badge">Available</span>
       </div>
       <h3 className="card-title">{product.name}</h3>
@@ -217,10 +237,9 @@ function LoanProductCard({ product, onApply }) {
   );
 }
 
-function LoansPage({ loans, onApply }) {
+function LoansView({ loans, onApply }) {
   return (
     <div className="page">
-      <TopBar action={() => alert("No new notifications")} />
       <section className="section">
         <div className="section-header">
           <h1 className="section-title">My Loans</h1>
@@ -230,12 +249,16 @@ function LoansPage({ loans, onApply }) {
           <div className="card empty">You don't have any loans yet.</div>
         ) : (
           <div>
-            {loans.map((loan) => <LoanCard key={loan.id} loan={loan} />)}
+            {loans.map((loan) => (
+              <LoanCard key={loan.id} loan={loan} />
+            ))}
           </div>
         )}
 
         <div style={{ marginTop: 20 }}>
-          <button className="primary-button" onClick={onApply}>Apply for a New Loan</button>
+          <button className="primary-button" onClick={onApply}>
+            Apply for a New Loan
+          </button>
         </div>
       </section>
     </div>
@@ -244,22 +267,31 @@ function LoansPage({ loans, onApply }) {
 
 function LoanCard({ loan, compact = false }) {
   const paid = Math.max(0, loan.amount - loan.remaining);
-  const progress = loan.amount ? Math.min(100, (paid / loan.amount) * 100) : 0;
+  const progress = loan.amount
+    ? Math.min(100, (paid / loan.amount) * 100)
+    : 0;
 
   return (
     <article className="card loan-card">
       <div className="card-top">
         <div>
           <div className="loan-number">{loan.id}</div>
-          <h3 className="card-title" style={{ marginTop: 5 }}>{loan.product}</h3>
+          <h3 className="card-title" style={{ marginTop: 5 }}>
+            {loan.product}
+          </h3>
         </div>
         <span className="badge success">{loan.status}</span>
       </div>
 
       <div className="loan-amount">{formatIDR(loan.remaining)}</div>
-      <div className="muted" style={{ fontSize: 11, marginTop: 2 }}>remaining balance</div>
+      <div className="muted" style={{ fontSize: 11, marginTop: 2 }}>
+        remaining balance
+      </div>
 
-      <div className="progress" aria-label={`Loan paid ${Math.round(progress)} percent`}>
+      <div
+        className="progress"
+        aria-label={`Loan paid ${Math.round(progress)} percent`}
+      >
         <span style={{ width: `${progress}%` }} />
       </div>
 
@@ -282,11 +314,9 @@ function LoanCard({ loan, compact = false }) {
   );
 }
 
-function ProfilePage() {
+function ProfileView() {
   return (
     <div className="page">
-      <TopBar action={() => alert("No new notifications")} />
-
       <div className="card profile">
         <div className="avatar">LG</div>
         <h1>Account</h1>
@@ -294,11 +324,26 @@ function ProfilePage() {
       </div>
 
       <div className="list">
-        <button className="list-item"><span>Personal Information</span><span className="arrow">›</span></button>
-        <button className="list-item"><span>Documents</span><span className="arrow">›</span></button>
-        <button className="list-item"><span>Security</span><span className="arrow">›</span></button>
-        <button className="list-item"><span>Notifications</span><span className="arrow">›</span></button>
-        <button className="list-item"><span>Help & Support</span><span className="arrow">›</span></button>
+        <button className="list-item">
+          <span>Personal Information</span>
+          <span className="arrow">›</span>
+        </button>
+        <button className="list-item">
+          <span>Documents</span>
+          <span className="arrow">›</span>
+        </button>
+        <button className="list-item">
+          <span>Security</span>
+          <span className="arrow">›</span>
+        </button>
+        <button className="list-item">
+          <span>Notifications</span>
+          <span className="arrow">›</span>
+        </button>
+        <button className="list-item">
+          <span>Help &amp; Support</span>
+          <span className="arrow">›</span>
+        </button>
       </div>
     </div>
   );
@@ -320,11 +365,27 @@ function BottomNav({ activeTab, onChange }) {
           onClick={() => onChange(id)}
           aria-current={activeTab === id ? "page" : undefined}
         >
-          <span className="nav-icon" aria-hidden="true">{icon}</span>
+          <span className="nav-icon" aria-hidden="true">
+            {icon}
+          </span>
           <span className="nav-label">{label}</span>
         </button>
       ))}
     </nav>
+  );
+}
+
+function Overlay({ selectedProduct, onClose, onSubmit }) {
+  if (!selectedProduct) return null;
+
+  return (
+    <div className="overlay" onClick={onClose} role="presentation">
+      <LoanApplicationSheet
+        product={selectedProduct}
+        onClose={onClose}
+        onSubmit={onSubmit}
+      />
+    </div>
   );
 }
 
@@ -350,48 +411,70 @@ function LoanApplicationSheet({ product, onClose, onSubmit }) {
   }
 
   return (
-    <div className="overlay" onClick={onClose} role="presentation">
-      <section className="sheet" onClick={(event) => event.stopPropagation()} aria-label="Loan application">
-        <div className="handle" />
-        <h2>Apply for {product.name}</h2>
-        <p className="sheet-subtitle">Choose an amount and tenor to start your application.</p>
+    <section
+      className="sheet"
+      onClick={(event) => event.stopPropagation()}
+      aria-label="Loan application"
+    >
+      <div className="handle" />
+      <h2>Apply for {product.name}</h2>
+      <p className="sheet-subtitle">
+        Choose an amount and tenor to start your application.
+      </p>
 
-        <div className="field">
-          <label htmlFor="loan-amount">Loan amount</label>
-          <input
-            id="loan-amount"
-            type="number"
-            inputMode="numeric"
-            min="1"
-            max={product.maxAmount}
-            placeholder="Enter amount"
-            value={amount}
-            onChange={(event) => {
-              setAmount(event.target.value);
-              setError("");
-            }}
-          />
-        </div>
+      <div className="field">
+        <label htmlFor="loan-amount">Loan amount</label>
+        <input
+          id="loan-amount"
+          type="number"
+          inputMode="numeric"
+          min="1"
+          max={product.maxAmount}
+          placeholder="Enter amount"
+          value={amount}
+          onChange={(event) => {
+            setAmount(event.target.value);
+            setError("");
+          }}
+        />
+      </div>
 
-        <div className="field">
-          <label htmlFor="loan-tenor">Tenor</label>
-          <select id="loan-tenor" value={tenor} onChange={(event) => setTenor(event.target.value)}>
-            <option value="3">3 months</option>
-            <option value="6">6 months</option>
-            <option value="12">12 months</option>
-            <option value="18">18 months</option>
-            <option value="24">24 months</option>
-          </select>
-        </div>
+      <div className="field">
+        <label htmlFor="loan-tenor">Tenor</label>
+        <select
+          id="loan-tenor"
+          value={tenor}
+          onChange={(event) => setTenor(event.target.value)}
+        >
+          <option value="3">3 months</option>
+          <option value="6">6 months</option>
+          <option value="12">12 months</option>
+          <option value="18">18 months</option>
+          <option value="24">24 months</option>
+        </select>
+      </div>
 
-        {error && <p style={{ color: "var(--danger)", fontSize: 12, margin: "-4px 0 12px" }}>{error}</p>}
+      {error && (
+        <p
+          style={{
+            color: "var(--danger)",
+            fontSize: 12,
+            margin: "-4px 0 12px",
+          }}
+        >
+          {error}
+        </p>
+      )}
 
-        <div className="sheet-actions">
-          <button className="primary-button" onClick={handleSubmit}>Submit Application</button>
-          <button className="secondary-button" onClick={onClose}>Cancel</button>
-        </div>
-      </section>
-    </div>
+      <div className="sheet-actions">
+        <button className="primary-button" onClick={handleSubmit}>
+          Submit Application
+        </button>
+        <button className="secondary-button" onClick={onClose}>
+          Cancel
+        </button>
+      </div>
+    </section>
   );
 }
 
