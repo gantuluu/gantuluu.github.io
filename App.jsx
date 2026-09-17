@@ -1,9 +1,9 @@
-const { useMemo, useState } = React;
+const { useEffect, useMemo, useState } = React;
 
 const LOAN_PRODUCTS = [
   {
     id: "personal",
-    icon: "◈",
+    icon: "wallet-cards",
     name: "Personal Loan",
     description: "Flexible financing for personal needs.",
     maxAmount: 10000000,
@@ -12,7 +12,7 @@ const LOAN_PRODUCTS = [
   },
   {
     id: "business",
-    icon: "▣",
+    icon: "briefcase-business",
     name: "Business Loan",
     description: "Working-capital financing for your business.",
     maxAmount: 25000000,
@@ -21,7 +21,7 @@ const LOAN_PRODUCTS = [
   },
   {
     id: "emergency",
-    icon: "✦",
+    icon: "triangle-alert",
     name: "Emergency Loan",
     description: "Financing for urgent and unexpected expenses.",
     maxAmount: 5000000,
@@ -50,6 +50,10 @@ function formatIDR(value) {
   }).format(value);
 }
 
+function Icon({ name, size = "icon" }) {
+  return <i data-lucide={name} className={size} aria-hidden="true" />;
+}
+
 function App() {
   return <AppShell />;
 }
@@ -68,6 +72,12 @@ function AppShell() {
     () => activeLoans.reduce((sum, loan) => sum + loan.remaining, 0),
     [activeLoans]
   );
+
+  useEffect(() => {
+    if (window.lucide) {
+      window.lucide.createIcons({ attrs: { "stroke-width": 2 } });
+    }
+  });
 
   function openApplication(product) {
     setSelectedProduct(product);
@@ -103,14 +113,9 @@ function AppShell() {
               onViewLoans={() => setActiveTab("loans")}
             />
           )}
-
           {activeTab === "loans" && (
-            <LoansView
-              loans={loans}
-              onApply={() => setActiveTab("home")}
-            />
+            <LoansView loans={loans} onApply={() => setActiveTab("home")} />
           )}
-
           {activeTab === "profile" && <ProfileView />}
         </main>
 
@@ -139,7 +144,7 @@ function Header() {
         onClick={handleNotifications}
         aria-label="Notifications"
       >
-        ♢
+        <Icon name="bell" />
       </button>
     </header>
   );
@@ -180,7 +185,6 @@ function HomeView({ activeLoans, outstanding, onApply, onViewLoans }) {
             View all
           </button>
         </div>
-
         {activeLoans.length === 0 ? (
           <div className="card empty">You don't have any active loans.</div>
         ) : (
@@ -192,7 +196,6 @@ function HomeView({ activeLoans, outstanding, onApply, onViewLoans }) {
         <div className="section-header">
           <h2 className="section-title">Loan Products</h2>
         </div>
-
         <div className="stack">
           {LOAN_PRODUCTS.map((product) => (
             <LoanProductCard
@@ -212,13 +215,12 @@ function LoanProductCard({ product, onApply }) {
     <article className="card product-card" onClick={onApply}>
       <div className="card-top">
         <div className="icon-box" aria-hidden="true">
-          {product.icon}
+          <Icon name={product.icon} />
         </div>
         <span className="badge">Available</span>
       </div>
       <h3 className="card-title">{product.name}</h3>
       <p className="card-description">{product.description}</p>
-
       <div className="meta-grid">
         <div>
           <div className="meta-label">UP TO</div>
@@ -244,7 +246,6 @@ function LoansView({ loans, onApply }) {
         <div className="section-header">
           <h1 className="section-title">My Loans</h1>
         </div>
-
         {loans.length === 0 ? (
           <div className="card empty">You don't have any loans yet.</div>
         ) : (
@@ -254,7 +255,6 @@ function LoansView({ loans, onApply }) {
             ))}
           </div>
         )}
-
         <div style={{ marginTop: 20 }}>
           <button className="primary-button" onClick={onApply}>
             Apply for a New Loan
@@ -280,7 +280,10 @@ function LoanCard({ loan, compact = false }) {
             {loan.product}
           </h3>
         </div>
-        <span className="badge success">{loan.status}</span>
+        <span className="badge success">
+          <Icon name="circle-check" size="icon-sm" />
+          {loan.status}
+        </span>
       </div>
 
       <div className="loan-amount">{formatIDR(loan.remaining)}</div>
@@ -303,7 +306,6 @@ function LoanCard({ loan, compact = false }) {
         <span className="muted">Due date</span>
         <span className="strong">{loan.dueDate}</span>
       </div>
-
       {!compact && (
         <div className="detail-row">
           <span className="muted">Original amount</span>
@@ -315,6 +317,14 @@ function LoanCard({ loan, compact = false }) {
 }
 
 function ProfileView() {
+  const items = [
+    ["user-round", "Personal Information"],
+    ["files", "Documents"],
+    ["shield-check", "Security"],
+    ["bell", "Notifications"],
+    ["circle-help", "Help & Support"],
+  ];
+
   return (
     <div className="page">
       <div className="card profile">
@@ -324,26 +334,17 @@ function ProfileView() {
       </div>
 
       <div className="list">
-        <button className="list-item">
-          <span>Personal Information</span>
-          <span className="arrow">›</span>
-        </button>
-        <button className="list-item">
-          <span>Documents</span>
-          <span className="arrow">›</span>
-        </button>
-        <button className="list-item">
-          <span>Security</span>
-          <span className="arrow">›</span>
-        </button>
-        <button className="list-item">
-          <span>Notifications</span>
-          <span className="arrow">›</span>
-        </button>
-        <button className="list-item">
-          <span>Help &amp; Support</span>
-          <span className="arrow">›</span>
-        </button>
+        {items.map(([icon, label]) => (
+          <button className="list-item" key={label}>
+            <span className="list-item-content">
+              <Icon name={icon} size="icon-sm" />
+              <span>{label}</span>
+            </span>
+            <span className="arrow">
+              <Icon name="chevron-right" size="icon-sm" />
+            </span>
+          </button>
+        ))}
       </div>
     </div>
   );
@@ -351,9 +352,9 @@ function ProfileView() {
 
 function BottomNav({ activeTab, onChange }) {
   const items = [
-    ["home", "⌂", "Home"],
-    ["loans", "▣", "Loans"],
-    ["profile", "○", "Profile"],
+    ["home", "house", "Home"],
+    ["loans", "hand-coins", "Loans"],
+    ["profile", "user-round", "Profile"],
   ];
 
   return (
@@ -365,8 +366,8 @@ function BottomNav({ activeTab, onChange }) {
           onClick={() => onChange(id)}
           aria-current={activeTab === id ? "page" : undefined}
         >
-          <span className="nav-icon" aria-hidden="true">
-            {icon}
+          <span className="nav-icon">
+            <Icon name={icon} />
           </span>
           <span className="nav-label">{label}</span>
         </button>
@@ -401,12 +402,10 @@ function LoanApplicationSheet({ product, onClose, onSubmit }) {
       setError("Enter a valid loan amount.");
       return;
     }
-
     if (value > product.maxAmount) {
       setError(`Maximum amount is ${formatIDR(product.maxAmount)}.`);
       return;
     }
-
     onSubmit({ amount: value, tenor: Number(tenor) });
   }
 
@@ -417,10 +416,17 @@ function LoanApplicationSheet({ product, onClose, onSubmit }) {
       aria-label="Loan application"
     >
       <div className="handle" />
-      <h2>Apply for {product.name}</h2>
-      <p className="sheet-subtitle">
-        Choose an amount and tenor to start your application.
-      </p>
+      <div className="sheet-header">
+        <div>
+          <h2>Apply for {product.name}</h2>
+          <p className="sheet-subtitle">
+            Choose an amount and tenor to start your application.
+          </p>
+        </div>
+        <button className="sheet-close" onClick={onClose} aria-label="Close">
+          <Icon name="x" />
+        </button>
+      </div>
 
       <div className="field">
         <label htmlFor="loan-amount">Loan amount</label>
@@ -455,13 +461,7 @@ function LoanApplicationSheet({ product, onClose, onSubmit }) {
       </div>
 
       {error && (
-        <p
-          style={{
-            color: "var(--danger)",
-            fontSize: 12,
-            margin: "-4px 0 12px",
-          }}
-        >
+        <p style={{ color: "var(--danger)", fontSize: 12, margin: "-4px 0 12px" }}>
           {error}
         </p>
       )}
